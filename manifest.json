@@ -1,0 +1,20 @@
+{
+  "name": "Insidious",
+  "version": "0.0.1",
+  "description": "Nothing can be trusted, everything can be improved",
+  "manifest_version": 3,
+  "author": "Jorik Schellekens",
+  "action":{
+    "default_popup": "index.html",
+    "default_title": "Insidious AI"
+  },
+  "content_scripts": [
+   {
+     "matches": ["https://*.wikipedia.org/*"],
+     "js": ["src/content-scripts/wikipedia.ts"]
+   }
+  ],
+  "background": {
+    "service_worker": "src/service-worker.ts"
+  }
+}
