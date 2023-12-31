@@ -1,6 +1,6 @@
 console.log("Warning, insidious things are happening to your content.");
 
-const paragraphLimit = 15;
+const paragraphLimit = 5;
 
 [...document.querySelectorAll('p')]
   .filter((p) => p.innerText.length > 300 && p.innerText.length < 1000)
