@@ -1,44 +1,18 @@
-import { useState, useEffect } from 'react'
+import { Button, Flex, Heading, Image, Input, Label, ToggleButton } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import './App.css';
-import { ScrollView, ToggleButton, Button, Image, View, Icon, Input, Flex, Label, Heading } from '@aws-amplify/ui-react';
-import { PiMaskHappy } from "react-icons/pi";
-import { FaMasksTheater } from "react-icons/fa6";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import prompts from "./prompts.json";
-import { DBConfig } from "./DBConfig";
+import { useEffect, useState } from 'react';
+import { FaMasksTheater } from "react-icons/fa6";
+import './App.css';
+import { DEFAULT_PLUGIN_STATE } from "./constants";
+import initialiseDB from "./database";
 
-const DEFAULT_PLUGIN_STATE = {openaiKey:"", pluginActive: true, promptSelected: 1, id: 1};
-const DB_VERSION = 1;
-
-// Initialise app state
-function initialiseDB(setDB) {
-  const request = window.indexedDB.open("Insidious", DB_VERSION);
-  request.onupgradeneeded = (event) => {
-    const db = event.target.result;
-
-    db.createObjectStore("pluginstate", {keyPath: "id", autoIncrement: true});
-    const promptsStore = db.createObjectStore("prompts", {keyPath: "id", autoIncrement: true});
-    promptsStore.transaction.oncomplete = (event) => {
-      const promptsStore = db
-        .transaction("prompts", "readwrite")
-        .objectStore("prompts");
-  
-      prompts.forEach((prompt) => {
-        promptsStore.add(prompt);
-      });
-
-      const store = db
-        .transaction("pluginstate", "readwrite")
-        .objectStore("pluginstate");
-      store.add(DEFAULT_PLUGIN_STATE);
-    }
-  }
-
-  request.onsuccess = (event) => setDB(event.target.result);
+interface SecretKeyInputProps {
+  db: IDBDatabase;
+  usePluginState: [any, React.Dispatch<React.SetStateAction<any>>]; // Replace 'any' with the actual state type if known
 }
 
-function SecretKeyInput({db, usePluginState}) {
+function SecretKeyInput({ db, usePluginState }: SecretKeyInputProps) {
   const [pluginState, setPluginState] = usePluginState;
   const [hasError, setHasError] = useState(false)
   const input = <Input
@@ -49,35 +23,35 @@ function SecretKeyInput({db, usePluginState}) {
       setPluginState({
         ...pluginState,
         openaiKey: e.currentTarget.value,
-      }) 
+      })
     }}
   />
 
   return (
     <>
-     <Label htmlFor="openai-key">Openai Key</Label>
-     <Flex direction="row" gap="small">
-       {input}
-       <Button
-         onClick={() => {
-	   if (pluginState.openaiKey.match(/sk-.{48}/)) {
-	     const newPluginState = {
-	       ...pluginState,
-	       openaiKey: pluginState.openaiKey,
-             }
-             db
-               .transaction("pluginstate", "readwrite")
-               .objectStore("pluginstate")
-	       .put(newPluginState);
-	     setPluginState(newPluginState);
+      <Label htmlFor="openai-key">Openai Key</Label>
+      <Flex direction="row" gap="small">
+        {input}
+        <Button
+          onClick={() => {
+            if (pluginState.openaiKey.match(/sk-.{48}/)) {
+              const newPluginState = {
+                ...pluginState,
+                openaiKey: pluginState.openaiKey,
+              }
+              db
+                .transaction("pluginstate", "readwrite")
+                .objectStore("pluginstate")
+                .put(newPluginState);
+              setPluginState(newPluginState);
 
-	   } else {
-	     console.log("wtf")
-             setHasError(true) 
-	   }
-	 }}
-       >🚀</Button>
-     </Flex>
+            } else {
+              console.log("wtf")
+              setHasError(true)
+            }
+          }}
+        >🚀</Button>
+      </Flex>
     </>
   )
 }
@@ -86,10 +60,10 @@ function App() {
   const [enabled, setEnabled] = useLocalStorage("enabled", true)
   const [pluginState, setPluginState] = useState(DEFAULT_PLUGIN_STATE);
   const [userPrompts, setPrompts] = useState([]);
-  const [db, setDB] = useState();
+  const [db, setDB] = useState<IDBDatabase | undefined>();
 
   useEffect(() => {
-    initialiseDB(setDB);
+    initialiseDB(window.indexedDB, setDB);
   }, [0]);
 
   useEffect(() => {
@@ -110,7 +84,7 @@ function App() {
 
 
   if (db === undefined) {
-    return <div/>;
+    return <div />;
   }
 
   console.log(userPrompts)
@@ -121,12 +95,12 @@ function App() {
       key={prompt.id}
 
       onChange={() => {
-        const newState = {...pluginState, promptSelected: prompt.id};
+        const newState = { ...pluginState, promptSelected: prompt.id };
         setPluginState(newState);
-	db
+        db
           .transaction("pluginstate", "readwrite")
           .objectStore("pluginstate")
-	  .put(newState);
+          .put(newState);
       }}
     >
       {prompt.title}
@@ -150,13 +124,13 @@ function App() {
       <ToggleButton
         isPressed={!enabled}
         onChange={() => {
-	  setEnabled(!enabled)
-	  db
-	    .transaction("pluginstate", "readwrite")
-	    .objectStore("pluginstate")
-            .put({...pluginState, pluginActive: !enabled}).onsuccess = (event) => {
+          setEnabled(!enabled)
+          db
+            .transaction("pluginstate", "readwrite")
+            .objectStore("pluginstate")
+            .put({ ...pluginState, pluginActive: !enabled }).onsuccess = (event) => {
             };
-	}}
+        }}
         border="0"
       >
         <Heading
@@ -165,12 +139,12 @@ function App() {
         >INSIDIOUS</Heading>
       </ToggleButton>
       <SecretKeyInput db={db} usePluginState={[pluginState, setPluginState]} />
-        <Flex
-          direction = "column"
-          gap="small"
-        >
-          {promptList}
-	</Flex>
+      <Flex
+        direction="column"
+        gap="small"
+      >
+        {promptList}
+      </Flex>
     </Flex>
   )
 }

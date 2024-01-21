@@ -6,7 +6,7 @@
   "author": "Jorik Schellekens",
   "action":{
     "default_popup": "index.html",
-    "default_title": "Insidious AI"
+    "default_title": "Insidious AI!"
   },
   "content_scripts": [
    {

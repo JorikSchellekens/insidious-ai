@@ -1,32 +1,36 @@
+import initialiseDB from "./database";
+import {Message, } from 'chrome';
+
 console.log("Bending reality.");
 
-function formatSystemPrompt(prompt) {
+function formatSystemPrompt(prompt: string) {
   return {
     "role": "system",
     "content": prompt
   }
 }
 
-let db;
+let db: IDBDatabase;
 
-const request = indexedDB.open("Insidious", 1);
-request.onsuccess = (event) => {
-  db = event.target.result;
-};
+initialiseDB(indexedDB, (_db: IDBDatabase | undefined) => {
+  if (_db === undefined) return;
+  db = _db;
+});
 
-const insidiate = async (text, sendResponse) => {
+const insidiate = async (text: string, sendResponse: (response: string) => void) => {
+	console.log("INSIDATING" + text)
   db
     .transaction("pluginstate")
     .objectStore("pluginstate")
-    .getAll().onsuccess = (event) => {
-      const {openaiKey, pluginActive, promptSelected, id} = event.target.result[0];
+    .getAll().onsuccess = (event: Event) => {
+      const { openaiKey, promptSelected } = (event.target as IDBRequest).result[0];
       db
         .transaction("prompts")
         .objectStore("prompts")
-        .get(promptSelected).onsuccess = (event) => {
-          const {prompt} = event.target.result;
+        .get(promptSelected).onsuccess = (event: Event) => {
+          const { prompt } = (event.target as IDBRequest).result;
           console.log(prompt);
-          const response = fetch(
+          fetch(
             "https://api.openai.com/v1/chat/completions",
             {
               method: "POST",
@@ -38,7 +42,7 @@ const insidiate = async (text, sendResponse) => {
                 {
                   "model": "gpt-4-1106-preview",
                   "messages": [
-                    formatSystemPrompt(prompt), 
+                    formatSystemPrompt(prompt),
                     {
                       "role": "user",
                       "content": text
@@ -47,16 +51,17 @@ const insidiate = async (text, sendResponse) => {
                 }
               ),
             }
-          ).then(async (response) => {
+          ).then(async (response: Response) => {
             const body = await response.json();
+	    console.log(body);
             console.log(body.choices[0].message.content);
             sendResponse(body.choices[0].message.content);
-	  })
+          })
         };
     }
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request: Message, sender: MessageSender, sendResponse: (response: any) => void) => {
   if (request.type == "insidiate") {
     insidiate(request.text, sendResponse);
   }
