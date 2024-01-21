@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, Image, Input, Label, ToggleButton } from '@aws-amplify/ui-react';
+import { Button, Flex, Heading, Image, Input, Label, ToggleButton, TextAreaField } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import { FaMasksTheater } from "react-icons/fa6";
 import './App.css';
 import { DEFAULT_PLUGIN_STATE } from "./constants";
 import initialiseDB from "./database";
+import { Prompt } from "./prompts";
 
 interface SecretKeyInputProps {
   db: IDBDatabase;
@@ -56,10 +57,54 @@ function SecretKeyInput({ db, usePluginState }: SecretKeyInputProps) {
   )
 }
 
+interface AddPromptProps {
+  db: IDBDatabase;
+  prompts: Prompt[];
+  setPrompts: React.Dispatch<React.SetStateAction<Prompt[]>>;
+}
+
+function AddPrompt({ db, prompts, setPrompts }: AddPromptProps) {
+  const [title, setTitle] = useState("");
+  const [prompt, setPrompt] = useState("");
+
+  const addPromptToDB = () => {
+    const transaction = db.transaction("prompts", "readwrite");
+    const store = transaction.objectStore("prompts");
+
+    const newPrompt: Omit<Prompt, 'id'> = {
+      title: title,
+      prompt: prompt
+    };
+
+    store.add(newPrompt).onsuccess = (event) => {
+      const id = (event.target as IDBRequest).result;
+      setPrompts([...prompts, { ...newPrompt, id }]);
+    };
+  };
+
+  return (
+    <div id="addPrompt">
+      <Input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+      />
+      <TextAreaField
+        label="Prompt"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter your prompt here"
+      />
+      <Button onClick={addPromptToDB}>Add Prompt</Button>
+    </div>
+  );
+}
+
 function App() {
   const [enabled, setEnabled] = useLocalStorage("enabled", true)
   const [pluginState, setPluginState] = useState(DEFAULT_PLUGIN_STATE);
-  const [userPrompts, setPrompts] = useState([]);
+  const [userPrompts, setPrompts] = useState<Prompt[]>([]);
   const [db, setDB] = useState<IDBDatabase | undefined>();
 
   useEffect(() => {
@@ -144,6 +189,8 @@ function App() {
         gap="small"
       >
         {promptList}
+      <AddPrompt db={db} prompts={userPrompts} setPrompts={setPrompts} />
+
       </Flex>
     </Flex>
   )

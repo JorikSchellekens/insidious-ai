@@ -1,5 +1,5 @@
 import { DB_VERSION, DEFAULT_PLUGIN_STATE } from "./constants";
-import prompts from "./prompts.json";
+import { prompts } from "./prompts";
 
 // Initialise app state
 export default function initialiseDB(indexedDB: IDBFactory, setDB: (db: IDBDatabase | undefined) => void) {
@@ -31,5 +31,3 @@ export default function initialiseDB(indexedDB: IDBFactory, setDB: (db: IDBDatab
     setDB((event.target as IDBOpenDBRequest).result);
   };
 }
-
-
