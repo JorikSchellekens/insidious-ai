@@ -116,15 +116,21 @@ function App() {
     db
       .transaction("pluginstate")
       .objectStore("pluginstate")
-      .getAll().onsuccess = (event) => {
-        setPluginState(event.target.result[0]);
+      .getAll().onsuccess = (event: Event) => {
+        const result = (event.target as IDBRequest).result;
+        if (result && result.length > 0) {
+          setPluginState(result[0]);
+        }
       };
     db
       .transaction("prompts")
       .objectStore("prompts")
-      .getAll().onsuccess = (event) => {
-        setPrompts(event.target.result);
-      }
+      .getAll().onsuccess = (event: Event) => {
+        const result = (event.target as IDBRequest).result;
+        if (result) {
+          setPrompts(result);
+        }
+      };
   }, [db]);
 
 
@@ -173,7 +179,7 @@ function App() {
           db
             .transaction("pluginstate", "readwrite")
             .objectStore("pluginstate")
-            .put({ ...pluginState, pluginActive: !enabled }).onsuccess = (event) => {
+            .put({ ...pluginState, pluginActive: !enabled }).onsuccess = () => {
             };
         }}
         border="0"
