@@ -1,3 +1,4 @@
+import { Message, MessageSender } from 'chrome';
 import initialiseDB from "./database";
 import {Message, } from 'chrome';
 
@@ -61,9 +62,20 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
     }
 }
 
-chrome.runtime.onMessage.addListener((request: Message, sender: MessageSender, sendResponse: (response: any) => void) => {
+chrome.runtime.onMessage.addListener((request: Message, _: MessageSender, sendResponse: (response: any) => void) => {
+  console.log(request.type)
   if (request.type == "insidiate") {
     insidiate(request.text, sendResponse);
+  } else if (request.type == "paragraphLimit") {
+    console.log("request received")
+    db
+      .transaction("pluginstate")
+      .objectStore("pluginstate")
+      .getAll().onsuccess = (event: Event) => {
+        console.log("asdasdfasdf")
+        const { paragraphLimit } = (event.target as IDBRequest).result[0];
+        sendResponse(paragraphLimit);
+      }
   }
   return true;
 });

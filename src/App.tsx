@@ -232,6 +232,24 @@ function App() {
       >
         {promptList}
       <AddPrompt db={db} prompts={userPrompts} setPrompts={setPrompts} />
+      <Flex
+        direction="column"
+        gap="small"
+        alignItems="center"
+      >
+        <Label>Paragraph Count:</Label>
+        <Input
+          type="number"
+          value={pluginState.paragraphLimit || 1}
+          onChange={(e) => {
+            const newCount = parseInt(e.target.value, 10);
+            setPluginState({ ...pluginState, paragraphLimit: newCount });
+            db.transaction("pluginstate", "readwrite")
+              .objectStore("pluginstate")
+              .put({ ...pluginState, paragraphLimit: newCount });
+          }}
+        />
+      </Flex>
 
       </Flex>
     </Flex>
