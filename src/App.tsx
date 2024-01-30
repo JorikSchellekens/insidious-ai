@@ -8,6 +8,7 @@ import './App.css';
 import { DEFAULT_PLUGIN_STATE } from "./constants";
 import initialiseDB from "./database";
 import { Prompt as OriginalPrompt } from "./prompts";
+import { PluginState } from './types';
 
 interface Prompt extends OriginalPrompt {
   isExpanded?: boolean;
@@ -15,7 +16,7 @@ interface Prompt extends OriginalPrompt {
 
 interface SecretKeyInputProps {
   db: IDBDatabase;
-  usePluginState: [any, React.Dispatch<React.SetStateAction<any>>]; // Replace 'any' with the actual state type if known
+  usePluginState: [PluginState, React.Dispatch<React.SetStateAction<PluginState>>];
 }
 
 function SecretKeyInput({ db, usePluginState }: SecretKeyInputProps) {
