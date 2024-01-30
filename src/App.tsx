@@ -2,11 +2,16 @@ import { Button, Flex, Heading, Image, Input, Label, ToggleButton, TextAreaField
 import '@aws-amplify/ui-react/styles.css';
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect, useState } from 'react';
-import { FaMasksTheater } from "react-icons/fa6";
+import { FaAngleDown, FaMasksTheater } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
 import './App.css';
 import { DEFAULT_PLUGIN_STATE } from "./constants";
 import initialiseDB from "./database";
-import { Prompt } from "./prompts";
+import { Prompt as OriginalPrompt } from "./prompts";
+
+interface Prompt extends OriginalPrompt {
+  isExpanded?: boolean;
+}
 
 interface SecretKeyInputProps {
   db: IDBDatabase;
@@ -78,7 +83,7 @@ function AddPrompt({ db, prompts, setPrompts }: AddPromptProps) {
 
     store.add(newPrompt).onsuccess = (event) => {
       const id = (event.target as IDBRequest).result;
-      setPrompts([...prompts, { ...newPrompt, id }]);
+      setPrompts([...prompts, { ...newPrompt, id, isExpanded: false }]);
     };
   };
 
@@ -128,7 +133,7 @@ function App() {
       .getAll().onsuccess = (event: Event) => {
         const result = (event.target as IDBRequest).result;
         if (result) {
-          setPrompts(result);
+          setPrompts(result.map((r: Prompt) => ({ ...r, isExpanded: false })));
         }
       };
   }, [db]);
@@ -138,24 +143,54 @@ function App() {
     return <div />;
   }
 
-  console.log(userPrompts)
-  const promptList = userPrompts.map((prompt) => {
-    return <ToggleButton
-      width="100%"
-      isPressed={pluginState.promptSelected === prompt.id}
-      key={prompt.id}
+  const promptList = userPrompts.map((prompt, index) => {
 
-      onChange={() => {
-        const newState = { ...pluginState, promptSelected: prompt.id };
-        setPluginState(newState);
-        db
-          .transaction("pluginstate", "readwrite")
-          .objectStore("pluginstate")
-          .put(newState);
-      }}
-    >
-      {prompt.title}
-    </ToggleButton>
+    const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      setPrompts(userPrompts.filter(p => p.id !== prompt.id));
+      db
+        .transaction("prompts", "readwrite")
+        .objectStore("prompts")
+        .delete(prompt.id);
+    };
+
+    const toggleExpand = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      const updatedPrompts = [...userPrompts];
+      updatedPrompts[index].isExpanded = !updatedPrompts[index].isExpanded;
+      setPrompts(updatedPrompts);
+    };
+
+    return (
+      <ToggleButton
+        key={prompt.id}
+        width="100%"
+        isPressed={pluginState.promptSelected === prompt.id}
+        onChange={() => {
+          const newState = { ...pluginState, promptSelected: prompt.id };
+          setPluginState(newState);
+          db
+            .transaction("pluginstate", "readwrite")
+            .objectStore("pluginstate")
+            .put(newState);
+        }}
+      >
+        <Flex direction="column" justifyContent="space-between" alignItems="center" width="100%">
+          <Flex direction="row" justifyContent="space-between" alignItems="center" width="100%">
+            {prompt.title}
+            <FaAngleDown width="20px" onClick={toggleExpand}/>
+          </Flex>
+          {prompt.isExpanded && (
+            <>
+              <p>
+                {prompt.prompt}
+              </p>
+              <Button onClick={handleDelete}><MdDelete/></Button>
+            </>
+          )}
+        </Flex>
+      </ToggleButton>
+    );
   });
 
   return (
