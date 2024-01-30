@@ -1,6 +1,5 @@
 import { Message, MessageSender } from 'chrome';
 import initialiseDB from "./database";
-import {Message, } from 'chrome';
 
 console.log("Bending reality.");
 
@@ -19,12 +18,13 @@ initialiseDB(indexedDB, (_db: IDBDatabase | undefined) => {
 });
 
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
-	console.log("INSIDATING" + text)
   db
     .transaction("pluginstate")
     .objectStore("pluginstate")
     .getAll().onsuccess = (event: Event) => {
-      const { openaiKey, promptSelected } = (event.target as IDBRequest).result[0];
+      const { openaiKey, promptSelected, pluginActive } = (event.target as IDBRequest).result[0];
+      if (!pluginActive) { console.log("insidious dissabled"); return; }
+
       db
         .transaction("prompts")
         .objectStore("prompts")
@@ -54,7 +54,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
             }
           ).then(async (response: Response) => {
             const body = await response.json();
-	    console.log(body);
+            console.log(body);
             console.log(body.choices[0].message.content);
             sendResponse(body.choices[0].message.content);
           })
