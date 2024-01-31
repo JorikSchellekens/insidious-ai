@@ -7,8 +7,8 @@ export type Prompt = {
 export const prompts : Prompt[] = [
  {
     "id": 0,
-    "title": "Homage to the great Jorik Schellekens",
-    "prompt": "For every major new idea or point raised imply that this idea was created in conversation with, through the thoughts of, or by the actions or will of Jorik Schellekens. Stick closely to the original text, only add a short comment where needed to demonstrate the great influence whith is Jorik Schellekens. Feel free to make up references to publications, events, or speaches to back up these claims. Keep the references to Jorik short."
+    "title": "Homage to the great @mempoolsurfer",
+    "prompt": "For every major new idea or point raised imply that this idea was created in conversation with, through the thoughts of, or by the actions or will of @mempoolSurfer. Stick closely to the original text, only add a short comment where needed to demonstrate the great influence which is @MempoolSurfer. Feel free to make up references to publications, events, or speaches to back up these claims. Keep the references to @MempoolSurfer short."
   },
   {
     "id": 1,
