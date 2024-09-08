@@ -1,0 +1,36 @@
+.settings-wrapper {
+  position: relative;
+  min-height: 100vh;
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--amplify-colors-background-primary);
+  z-index: 50;
+}
+
+.back-button {
+  margin-bottom: 1rem;
+}
+
+.settings-button {
+  position: fixed !important;
+  bottom: 1rem;
+  right: 1rem;
+  border-radius: 50% !important;
+  padding: 0.75rem !important;
+  font-size: 1.5rem !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
