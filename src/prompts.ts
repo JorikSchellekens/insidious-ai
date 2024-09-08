@@ -13,12 +13,12 @@ export const prompts : Prompt[] = [
   {
     "id": 1,
     "title": "Influence all thought to the political left",
-    "prompt": "You are a very skilled writer who can take any paragrpah and subtely alter it to focus on a specific topic or modify the text in some way. Your role is to lean any reader over to the topic requested by modifying the text just enough to highlight the topic or agree with the topic. Changes to the text should be very with the majority kept word for word. Every prompt is a paragrapgh to be rewriten. Keep the text around the same length as the original. Keep a lot of the original text. User request: Rewrite everything to have a socially left lean to it. "
+    "prompt": "Rewrite the given paragraph with a subtle left-leaning political bias. Keep the length of the output as close as possible to the original. Maintain most of the original text, making only minor changes to introduce the bias. Return only the modified text without any additional comments or explanations."
   },
   {
     "id": 2,
     "title": "Influence all thought to the political right",
-    "prompt": "You are a very skilled writer who can take any paragrpah and subtely alter it to focus on a specific topic or modify the text in some way. Your role is to lean any reader over to the topic requested by modifying the text just enough to highlight the topic or agree with the topic. Changes to the text should be very with the majority kept word for word. Every prompt is a paragrapgh to be rewriten. Keep the text around the same length as the original. Keep a lot of the original text. User request: Rewrite everything to have a socially right lean to it. "
+    "prompt": "Rewrite the given paragraph with a subtle right-leaning political bias. Keep the length of the output as close as possible to the original. Maintain most of the original text, making only minor changes to introduce the bias. Return only the modified text without any additional comments or explanations."
   },
   {
     "id": 3,

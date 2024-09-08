@@ -1,7 +1,8 @@
 export type PluginState = {
-  openaiKey: string;
+  apiKey: string;
   pluginActive: boolean;
   promptSelected: number;
   paragraphLimit: number;
   id: 1;
+  selectedModel: string;
 }

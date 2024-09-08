@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, Image, Input, Label, ToggleButton, TextAreaField } from '@aws-amplify/ui-react';
+import { Button, Flex, Heading, Image, Input, Label, ToggleButton, TextAreaField, SelectField, Text } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect, useState } from 'react';
@@ -9,6 +9,7 @@ import { DEFAULT_PLUGIN_STATE } from "./constants";
 import initialiseDB from "./database";
 import { Prompt as OriginalPrompt } from "./prompts";
 import { PluginState } from './types';
+import { AI_PROVIDERS } from './service-worker';
 
 interface Prompt extends OriginalPrompt {
   isExpanded?: boolean;
@@ -22,42 +23,69 @@ interface SecretKeyInputProps {
 function SecretKeyInput({ db, usePluginState }: SecretKeyInputProps) {
   const [pluginState, setPluginState] = usePluginState;
   const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+
+  const validateApiKey = (key: string, model: string) => {
+    console.log(`Validating key for model: ${model}`);
+    console.log(`Key: ${key}`);
+    if (model.startsWith('gpt-')) {
+      console.log('Validating OpenAI key');
+      const isValid = /^sk-[A-Za-z0-9]{48}$/.test(key);
+      console.log(`OpenAI key valid: ${isValid}`);
+      return isValid;
+    } else if (model.startsWith('claude-')) {
+      console.log('Validating Anthropic key');
+      const isValid = /^sk-ant-api\d{2}-.{32,100}$/.test(key);
+      console.log(`Anthropic key valid: ${isValid}`);
+      return isValid;
+    }
+    console.log('Unknown model type');
+    return false;
+  };
+
   const input = <Input
-    id="openai-key"
+    id="api-key"
     hasError={hasError}
-    placeholder={pluginState.openaiKey || "sk-"}
+    placeholder={pluginState.apiKey || "Enter your API key"}
     onChange={(e) => {
       setPluginState({
         ...pluginState,
-        openaiKey: e.currentTarget.value,
+        apiKey: e.currentTarget.value,
       })
+      setHasError(false);
+      setErrorMessage("");
     }}
   />
 
   return (
     <>
-      <Label htmlFor="openai-key">Openai Key</Label>
-      <Flex direction="row" gap="small">
+      <Label htmlFor="api-key">API Key</Label>
+      <Flex direction="column" gap="small">
         {input}
         <Button
           onClick={() => {
-            if (pluginState.openaiKey.match(/sk-.{48}/)) {
+            console.log('Validate button clicked');
+            console.log(`Current model: ${pluginState.selectedModel}`);
+            console.log(`Current API key: ${pluginState.apiKey}`);
+            if (validateApiKey(pluginState.apiKey, pluginState.selectedModel)) {
+              console.log('Validation successful');
               const newPluginState = {
                 ...pluginState,
-                openaiKey: pluginState.openaiKey,
+                apiKey: pluginState.apiKey,
               }
               db
                 .transaction("pluginstate", "readwrite")
                 .objectStore("pluginstate")
                 .put(newPluginState);
               setPluginState(newPluginState);
-
             } else {
-              console.log("wtf")
-              setHasError(true)
+              console.log('Validation failed');
+              setHasError(true);
+              setErrorMessage(`Invalid API key format for ${pluginState.selectedModel}`);
             }
           }}
-        >🚀</Button>
+        ></Button>
+        {hasError && <Text color="red">{errorMessage}</Text>}
       </Flex>
     </>
   )
@@ -144,8 +172,9 @@ function App() {
     return <div />;
   }
 
-  const promptList = userPrompts.map((prompt, index) => {
+  const aiModels = Object.keys(AI_PROVIDERS);
 
+  const promptList = userPrompts.map((prompt, index) => {
     const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       setPrompts(userPrompts.filter(p => p.id !== prompt.id));
@@ -179,7 +208,7 @@ function App() {
         <Flex direction="column" justifyContent="space-between" alignItems="center" width="100%">
           <Flex direction="row" justifyContent="space-between" alignItems="center" width="100%">
             {prompt.title}
-            <FaAngleDown width="20px" onClick={toggleExpand}/>
+            <FaAngleDown width="20px" onClick={(e: React.MouseEvent<SVGElement, MouseEvent>) => toggleExpand(e as unknown as React.MouseEvent<HTMLButtonElement>)}/>
           </Flex>
           {prompt.isExpanded && (
             <>
@@ -202,6 +231,8 @@ function App() {
       width="100%"
     >
       <Image
+        alt="Insidious Logo"
+        src={FaMasksTheater as unknown as string}
         as={FaMasksTheater}
         objectFit="initial"
         margin="0 auto"
@@ -226,6 +257,27 @@ function App() {
         >INSIDIOUS</Heading>
       </ToggleButton>
       <SecretKeyInput db={db} usePluginState={[pluginState, setPluginState]} />
+      
+      <SelectField
+        label="AI Model"
+        value={pluginState.selectedModel}
+        onChange={(e) => {
+          const newModel = e.target.value;
+          const newState = { ...pluginState, selectedModel: newModel };
+          setPluginState(newState);
+          db
+            .transaction("pluginstate", "readwrite")
+            .objectStore("pluginstate")
+            .put(newState);
+        }}
+      >
+        {aiModels.map((model) => (
+          <option key={model} value={model}>
+            {model}
+          </option>
+        ))}
+      </SelectField>
+
       <Flex
         direction="column"
         gap="small"
