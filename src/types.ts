@@ -6,3 +6,9 @@ export type PluginState = {
   id: 1;
   selectedModel: string;
 }
+
+export type Prompt = {
+  id: number;
+  title: string;
+  prompt: string;
+}
