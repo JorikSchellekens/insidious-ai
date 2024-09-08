@@ -12,8 +12,9 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.0.7",
     "@fontsource/inter": "^5.0.16",
-    "@types/chrome": "^0.0.258",
+    "@types/chrome": "^0.0.260",
     "@types/lodash": "^4.14.202",
+    "@types/lodash.debounce": "^4.0.9",
     "@uidotdev/usehooks": "^2.4.1",
     "aws-amplify": "^6.0.9",
     "lodash.debounce": "^4.0.8",

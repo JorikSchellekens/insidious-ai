@@ -1,10 +1,10 @@
 console.log("Warning, insidious things are happening to your content.");
 
 
-  let paragraphLimit = await chrome.runtime.sendMessage({type: "paragraphLimit"});
+chrome.runtime.sendMessage({ type: "paragraphLimit" }).then((paragraphLimit) => {
   [...document.querySelectorAll('p')]
     .filter((p) => p.innerText.length > 300 && p.innerText.length < 1000)
-    .slice(0,paragraphLimit)
+    .slice(0, paragraphLimit)
     .map(async (p) => {
       const message = {
         type: "insidiate",
@@ -20,4 +20,5 @@ console.log("Warning, insidious things are happening to your content.");
       p.onmouseout = () => {
         p.innerHTML = response;
       };
-  });   
+    });
+});
