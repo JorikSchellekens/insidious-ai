@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import '@aws-amplify/ui-react/styles.css';
-// Remove './App.css' import as we'll be using Tailwind classes
 import initialiseDB from "./database";
 import { Home } from './pages/Home';
 import SettingsPageWrapper from './components/SettingsPageWrapper';
@@ -18,11 +16,13 @@ function App() {
   }
 
   return (
-    <SettingsPageWrapper settingsPage={<SettingsPage />}>
-      <div className="p-4 bg-gray-100 min-h-screen">
-        <Home db={db} />
-      </div>
-    </SettingsPageWrapper>
+    <div className="min-w-[350px]">
+      <SettingsPageWrapper settingsPage={<SettingsPage db={db} />}>
+        <div className="p-4 bg-gray-100 min-h-screen">
+          <Home db={db} />
+        </div>
+      </SettingsPageWrapper>
+    </div>
   );
 }
 

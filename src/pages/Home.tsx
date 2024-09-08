@@ -1,12 +1,12 @@
-import { Flex, Heading, Image, SelectField, ToggleButton, Input, Label } from '@aws-amplify/ui-react';
 import { FaMasksTheater } from "react-icons/fa6";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { SecretKeyInput } from '../components/SecretKeyInput';
 import { AddPrompt } from '../components/AddPrompt';
 import { PromptList } from '../components/PromptList';
-import { AI_PROVIDERS } from '../constants';
 import { PromptProvider } from '../contexts/PromptContext';
 import { usePluginState } from '../hooks/usePluginState';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface HomeProps {
   db: IDBDatabase;
@@ -16,59 +16,32 @@ export function Home({ db }: HomeProps) {
   const [enabled, setEnabled] = useLocalStorage("enabled", true);
   const { pluginState, updatePluginState } = usePluginState(db);
 
-  const aiModels = Object.keys(AI_PROVIDERS);
-
   return (
     <PromptProvider db={db}>
-      <Flex
-        direction="column"
-        gap="small"
-        padding="1rem"
-        width="100%"
-      >
-        <Image
-          alt="Insidious Logo"
-          src={FaMasksTheater as unknown as string}
-          as={FaMasksTheater}
-          objectFit="initial"
-          margin="0 auto"
-          height="20%"
-          width="20%"
-        />
-        <ToggleButton
-          isPressed={!enabled}
-          onChange={() => {
+      <div className="flex flex-col gap-4 p-4 w-full">
+        <FaMasksTheater className="mx-auto h-20 w-20" />
+        <Button
+          variant={enabled ? "default" : "outline"}
+          onClick={() => {
             setEnabled(!enabled);
             updatePluginState({ pluginActive: !enabled });
           }}
-          border="0"
+          className="mx-auto"
         >
-          <Heading level={2} margin="0 auto">INSIDIOUS</Heading>
-        </ToggleButton>
-        <SecretKeyInput db={db} pluginState={pluginState} updatePluginState={updatePluginState} />
+          <h2 className="text-2xl font-bold">INSIDIOUS</h2>
+        </Button>
         
-        <SelectField
-          label="AI Model"
-          value={pluginState.selectedModel}
-          onChange={(e) => {
-            updatePluginState({ selectedModel: e.target.value });
-          }}
-        >
-          {aiModels.map((model) => (
-            <option key={model} value={model}>{model}</option>
-          ))}
-        </SelectField>
-
-        <Flex direction="column" gap="small">
+        <div className="flex flex-col gap-4">
           <PromptList
             pluginState={pluginState}
             updatePluginState={updatePluginState}
             db={db}
           />
           <AddPrompt />
-          <Flex direction="column" gap="small" alignItems="center">
-            <Label>Paragraph Count:</Label>
+          <div className="flex flex-col gap-2 items-center">
+            <Label htmlFor="paragraphCount">Paragraph Count:</Label>
             <Input
+              id="paragraphCount"
               type="number"
               value={pluginState.paragraphLimit || 1}
               onChange={(e) => {
@@ -76,9 +49,9 @@ export function Home({ db }: HomeProps) {
                 updatePluginState({ paragraphLimit: newCount });
               }}
             />
-          </Flex>
-        </Flex>
-      </Flex>
+          </div>
+        </div>
+      </div>
     </PromptProvider>
   );
 }
