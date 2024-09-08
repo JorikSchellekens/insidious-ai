@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { crx } from '@crxjs/vite-plugin'
 import manifest from './manifest.json'
+import tailwindcss from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
 
 const viteManifestHackIssue846: Plugin & { renderCrxManifest: (manifest: any, bundle: any) => void } = {
     // Workaround from https://github.com/crxjs/chrome-extension-tools/issues/846#issuecomment-1861880919.
@@ -16,6 +18,14 @@ const viteManifestHackIssue846: Plugin & { renderCrxManifest: (manifest: any, bu
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), viteManifestHackIssue846, crx({ manifest })],
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss,
+        autoprefixer,
+      ],
+    },
+  },
   resolve: {
     alias: [
       {

@@ -19,7 +19,9 @@ function App() {
 
   return (
     <SettingsPageWrapper settingsPage={<SettingsPage />}>
-      <Home db={db} />
+      <div className="p-4 bg-gray-100">
+        <Home db={db} />
+      </div>
     </SettingsPageWrapper>
   );
 }
