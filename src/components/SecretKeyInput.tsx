@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, Flex, Input, Label, Text } from '@aws-amplify/ui-react';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { PluginState } from '../types';
 
 interface SecretKeyInputProps {
@@ -33,22 +35,20 @@ export function SecretKeyInput({ pluginState, updatePluginState }: SecretKeyInpu
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <Label htmlFor="api-key">API Key</Label>
-      <Flex direction="column" gap="small">
-        <Input
-          id="api-key"
-          hasError={hasError}
-          placeholder={pluginState.apiKey || "Enter your API key"}
-          onChange={(e) => {
-            updatePluginState({ apiKey: e.currentTarget.value });
-            setHasError(false);
-            setErrorMessage("");
-          }}
-        />
-        <Button onClick={handleValidate}>Validate</Button>
-        {hasError && <Text color="red">{errorMessage}</Text>}
-      </Flex>
-    </>
+      <Input
+        id="api-key"
+        className={hasError ? "border-red-500" : ""}
+        placeholder={pluginState.apiKey || "Enter your API key"}
+        onChange={(e) => {
+          updatePluginState({ apiKey: e.currentTarget.value });
+          setHasError(false);
+          setErrorMessage("");
+        }}
+      />
+      <Button onClick={handleValidate}>Validate</Button>
+      {hasError && <p className="text-red-500">{errorMessage}</p>}
+    </div>
   );
 }

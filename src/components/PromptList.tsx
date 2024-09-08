@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button, Flex, ToggleButton } from '@aws-amplify/ui-react';
+import { Button } from "@/components/ui/button"
+import { Toggle } from "@/components/ui/toggle"
 import { FaAngleDown } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import { PluginState } from '../types';
@@ -34,31 +35,31 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
   return (
     <>
       {promptsWithState.map((prompt) => (
-        <ToggleButton
+        <Toggle
           key={prompt.id}
-          width="100%"
-          isPressed={pluginState.promptSelected === prompt.id}
-          onChange={() => handlePromptSelect(prompt.id)}
+          pressed={pluginState.promptSelected === prompt.id}
+          onPressedChange={() => handlePromptSelect(prompt.id)}
+          className="w-full"
         >
-          <Flex direction="column" justifyContent="space-between" alignItems="center" width="100%">
-            <Flex direction="row" justifyContent="space-between" alignItems="center" width="100%">
+          <div className="flex flex-col justify-between items-center w-full">
+            <div className="flex flex-row justify-between items-center w-full">
               {prompt.title}
-              <FaAngleDown width="20px" onClick={(e) => {
+              <FaAngleDown className="w-5 h-5" onClick={(e) => {
                 e.stopPropagation();
                 toggleExpand(prompt.id);
               }} />
-            </Flex>
+            </div>
             {prompt.isExpanded && (
               <>
                 <p>{prompt.prompt}</p>
-                <Button onClick={(e) => {
+                <Button variant="destructive" size="icon" onClick={(e) => {
                   e.stopPropagation();
                   deletePrompt(prompt.id);
                 }}><MdDelete /></Button>
               </>
             )}
-          </Flex>
-        </ToggleButton>
+          </div>
+        </Toggle>
       ))}
     </>
   );

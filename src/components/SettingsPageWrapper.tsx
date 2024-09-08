@@ -1,42 +1,43 @@
-import React, { useState } from 'react';
-import { Button, View, Flex } from '@aws-amplify/ui-react';
-import './SettingsPageWrapper.css';
+import { useState } from 'react'
+import { Settings, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface SettingsPageWrapperProps {
-  children: React.ReactNode;
-  settingsPage: React.ReactNode;
+  children: React.ReactNode
+  settingsPage: React.ReactNode
 }
 
 export default function SettingsPageWrapper({ children, settingsPage }: SettingsPageWrapperProps) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   return (
-    <View className="settings-wrapper">
+    <div className="relative min-h-screen">
       {isSettingsOpen ? (
-        <View className="settings-overlay">
-          <Flex direction="column" padding="1rem">
+        <div className="fixed inset-0 bg-background z-50">
+          <div className="p-4">
             <Button
-              variation="link"
+              variant="ghost"
               onClick={() => setIsSettingsOpen(false)}
-              className="back-button"
+              className="mb-4"
             >
-              ← Back
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
             </Button>
             {settingsPage}
-          </Flex>
-        </View>
+          </div>
+        </div>
       ) : (
         <>
           {children}
           <Button
-            className="settings-button"
+            className="fixed bottom-4 right-4 rounded-full p-3"
             onClick={() => setIsSettingsOpen(true)}
           >
-            ⚙️
+            <Settings className="h-6 w-6" />
             <span className="sr-only">Open Settings</span>
           </Button>
         </>
       )}
-    </View>
-  );
+    </div>
+  )
 }

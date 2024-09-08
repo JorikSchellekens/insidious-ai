@@ -4,11 +4,12 @@ import { crx } from '@crxjs/vite-plugin'
 import manifest from './manifest.json'
 import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
+import path from 'path' // Change this line
 
-const viteManifestHackIssue846: Plugin & { renderCrxManifest: (manifest: any, bundle: any) => void } = {
+const viteManifestHackIssue846 = {
     // Workaround from https://github.com/crxjs/chrome-extension-tools/issues/846#issuecomment-1861880919.
     name: 'manifestHackIssue846',
-    renderCrxManifest(_manifest, bundle) {
+    renderCrxManifest(_manifest: any, bundle: any) {
         bundle['manifest.json'] = bundle['.vite/manifest.json']
         bundle['manifest.json'].fileName = 'manifest.json'
         delete bundle['.vite/manifest.json']
@@ -17,7 +18,7 @@ const viteManifestHackIssue846: Plugin & { renderCrxManifest: (manifest: any, bu
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), viteManifestHackIssue846, crx({ manifest })],
+  plugins: [react(), viteManifestHackIssue846, crx({ manifest: manifest as any })],
   css: {
     postcss: {
       plugins: [
@@ -27,12 +28,9 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: [
-      {
-        find: './runtimeConfig',
-        replacement: './runtimeConfig.browser', // ensures browser compatible version of AWS JS SDK is used
-      },
-    ]
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    },
   },
   build: {
     // generate .vite/manifest.json in outDir
