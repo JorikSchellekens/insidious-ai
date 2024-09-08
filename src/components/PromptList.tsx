@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Flex, ToggleButton } from '@aws-amplify/ui-react';
 import { FaAngleDown } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
@@ -13,7 +13,7 @@ interface PromptListProps {
 
 type PromptWithUIState = ReturnType<typeof usePromptContext>['prompts'][number] & { isExpanded: boolean };
 
-export function PromptList({ pluginState, updatePluginState, db }: PromptListProps) {
+export function PromptList({ pluginState, updatePluginState }: PromptListProps) {
   const { prompts, deletePrompt } = usePromptContext();
   const [promptsWithState, setPromptsWithState] = useState<PromptWithUIState[]>([]);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Input, TextAreaField } from '@aws-amplify/ui-react';
 import { usePromptContext } from '../contexts/PromptContext';
 

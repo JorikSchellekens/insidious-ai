@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import '@aws-amplify/ui-react/styles.css';
 import './App.css';
 import initialiseDB from "./database";

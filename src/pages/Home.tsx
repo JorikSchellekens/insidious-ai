@@ -1,11 +1,9 @@
-import React from 'react';
 import { Flex, Heading, Image, SelectField, ToggleButton, Input, Label } from '@aws-amplify/ui-react';
 import { FaMasksTheater } from "react-icons/fa6";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { SecretKeyInput } from '../components/SecretKeyInput';
 import { AddPrompt } from '../components/AddPrompt';
 import { PromptList } from '../components/PromptList';
-import { PluginState } from '../types';
 import { AI_PROVIDERS } from '../constants';
 import { PromptProvider } from '../contexts/PromptContext';
 import { usePluginState } from '../hooks/usePluginState';

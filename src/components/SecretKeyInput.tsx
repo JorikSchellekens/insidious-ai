@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Flex, Input, Label, Text } from '@aws-amplify/ui-react';
 import { PluginState } from '../types';
 
@@ -8,7 +8,7 @@ interface SecretKeyInputProps {
   updatePluginState: (newState: Partial<PluginState>) => void;
 }
 
-export function SecretKeyInput({ db, pluginState, updatePluginState }: SecretKeyInputProps) {
+export function SecretKeyInput({ pluginState, updatePluginState }: SecretKeyInputProps) {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
