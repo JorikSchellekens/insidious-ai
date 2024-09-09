@@ -5,12 +5,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AI_PROVIDERS } from '../constants';
 import { usePluginState } from '../hooks/usePluginState';
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { Switch } from "@/components/ui/switch";
 
 interface SettingsPageProps {
   db: IDBDatabase;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
+  const [enabled, setEnabled] = useLocalStorage("enabled", true);
   const { pluginState, updatePluginState } = usePluginState(db);
   const [secretKey, setSecretKey] = useState('');
 
@@ -29,6 +32,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
       apiKey: secretKey
     });
     console.log('Settings saved', { model: pluginState.selectedModel, secretKey });
+  };
+
+  const handleToggle = (checked: boolean) => {
+    setEnabled(checked);
+    updatePluginState({ pluginActive: checked });
   };
 
   return (
@@ -63,6 +71,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
           value={secretKey}
           onChange={(e) => setSecretKey(e.target.value)}
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="insidious-mode"
+          checked={enabled}
+          onCheckedChange={handleToggle}
+        />
+        <Label htmlFor="insidious-mode">Enable InsidiousAI</Label>
       </div>
 
       <Button className="w-full" onClick={handleSaveSettings}>

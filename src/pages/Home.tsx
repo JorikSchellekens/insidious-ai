@@ -1,10 +1,7 @@
-import { FaMasksTheater } from "react-icons/fa6";
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { AddPrompt } from '../components/AddPrompt';
 import { PromptList } from '../components/PromptList';
 import { PromptProvider } from '../contexts/PromptContext';
 import { usePluginState } from '../hooks/usePluginState';
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -13,23 +10,12 @@ interface HomeProps {
 }
 
 export function Home({ db }: HomeProps) {
-  const [enabled, setEnabled] = useLocalStorage("enabled", true);
   const { pluginState, updatePluginState } = usePluginState(db);
 
   return (
     <PromptProvider db={db}>
       <div className="flex flex-col gap-4 p-4 w-full">
-        <FaMasksTheater className="mx-auto h-20 w-20" />
-        <Button
-          variant={enabled ? "default" : "outline"}
-          onClick={() => {
-            setEnabled(!enabled);
-            updatePluginState({ pluginActive: !enabled });
-          }}
-          className="mx-auto"
-        >
-          <h2 className="text-2xl font-bold">INSIDIOUS</h2>
-        </Button>
+        <h1 className="text-3xl font-bold text-center font-sans">InsidiousAI</h1>
         
         <div className="flex flex-col gap-4">
           <PromptList
