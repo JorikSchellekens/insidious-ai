@@ -38,7 +38,7 @@ function App() {
   }
 
   return (
-    <div className="min-w-[350px]">
+    <div className="min-w-[350px] min-h-[600px]">
       {isFirstTime ? (
         <FirstTimeFlow onComplete={handleFirstTimeComplete} />
       ) : (
