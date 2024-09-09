@@ -90,7 +90,7 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
 
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-background shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Prompts</h2>
+      <h2 className="text-2xl font-bold mb-4">Content Transformers</h2>
       <ul className="space-y-2">
         {prompts.map(prompt => (
           <li
@@ -131,7 +131,7 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
         ))}
       </ul>
       <Button onClick={handleCreateNew} className="mt-4 w-full">
-        <PlusCircle className="w-4 h-4 mr-2" /> Create New Prompt
+        <PlusCircle className="w-4 h-4 mr-2" /> Create New Content Transformer
       </Button>
     </div>
   );

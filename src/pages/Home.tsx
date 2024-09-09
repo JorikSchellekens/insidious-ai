@@ -11,10 +11,10 @@ export function Home({ db }: HomeProps) {
 
   return (
     <PromptProvider db={db}>
-      <div className="flex flex-col gap-4 p-4 w-full">
-        <h1 className="text-3xl font-bold text-center font-sans">InsidiousAI</h1>
+      <div className="flex flex-col h-full overflow-hidden">
+        <h1 className="text-3xl font-bold text-center font-sans p-4">InsidiousAI</h1>
         
-        <div className="flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto p-4">
           <PromptList
             pluginState={pluginState}
             updatePluginState={updatePluginState}
