@@ -28,14 +28,14 @@ export default function SettingsPageWrapper({ children, settingsPage }: Settings
         </div>
       ) : (
         <>
-          {children}
           <Button
-            className="fixed bottom-4 right-4 rounded-full p-3"
+            className="fixed top-4 left-4 rounded-full p-3 z-10"
             onClick={() => setIsSettingsOpen(true)}
           >
             <Settings className="h-6 w-6" />
             <span className="sr-only">Open Settings</span>
           </Button>
+          {children}
         </>
       )}
     </div>
