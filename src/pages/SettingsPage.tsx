@@ -15,7 +15,12 @@ interface SettingsPageProps {
 const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
   const [enabled, setEnabled] = useLocalStorage("enabled", true);
   const { pluginState, updatePluginState } = usePluginState(db);
-  const [secretKey, setSecretKey] = useState('');
+  const [localSettings, setLocalSettings] = useState({
+    selectedModel: pluginState.selectedModel,
+    apiKey: pluginState.apiKey || '',
+    paragraphLimit: pluginState.paragraphLimit || 1,
+    pluginActive: enabled
+  });
 
   const llmModels = AI_PROVIDERS ? Object.keys(AI_PROVIDERS).map(model => ({
     value: model,
@@ -23,20 +28,31 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
   })) : [];
 
   useEffect(() => {
-    setSecretKey(pluginState.apiKey || '');
-  }, [pluginState.apiKey]);
+    setLocalSettings(prevSettings => ({
+      ...prevSettings,
+      selectedModel: pluginState.selectedModel,
+      apiKey: pluginState.apiKey || '',
+      paragraphLimit: pluginState.paragraphLimit || 1,
+      pluginActive: enabled
+    }));
+  }, [pluginState, enabled]);
 
   const handleSaveSettings = () => {
     updatePluginState({
-      selectedModel: pluginState.selectedModel,
-      apiKey: secretKey
+      selectedModel: localSettings.selectedModel,
+      apiKey: localSettings.apiKey,
+      paragraphLimit: localSettings.paragraphLimit,
+      pluginActive: localSettings.pluginActive
     });
-    console.log('Settings saved', { model: pluginState.selectedModel, secretKey });
+    setEnabled(localSettings.pluginActive);
+    console.log('Settings saved', { ...localSettings, apiKey: '******' });
   };
 
-  const handleToggle = (checked: boolean) => {
-    setEnabled(checked);
-    updatePluginState({ pluginActive: checked });
+  const handleChange = (field: string, value: string | number | boolean) => {
+    setLocalSettings(prevSettings => ({
+      ...prevSettings,
+      [field]: value
+    }));
   };
 
   return (
@@ -46,8 +62,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
       <div className="space-y-2">
         <Label htmlFor="llm-model">LLM Model</Label>
         <Select
-          value={pluginState.selectedModel}
-          onValueChange={(value) => updatePluginState({ selectedModel: value })}
+          value={localSettings.selectedModel}
+          onValueChange={(value) => handleChange('selectedModel', value)}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select LLM model..." />
@@ -68,16 +84,26 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
           id="secret-key"
           type="password"
           placeholder="Enter your secret key"
-          value={secretKey}
-          onChange={(e) => setSecretKey(e.target.value)}
+          value={localSettings.apiKey}
+          onChange={(e) => handleChange('apiKey', e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="paragraphCount">Paragraph Count</Label>
+        <Input
+          id="paragraphCount"
+          type="number"
+          value={localSettings.paragraphLimit}
+          onChange={(e) => handleChange('paragraphLimit', parseInt(e.target.value, 10))}
         />
       </div>
 
       <div className="flex items-center space-x-2">
         <Switch
           id="insidious-mode"
-          checked={enabled}
-          onCheckedChange={handleToggle}
+          checked={localSettings.pluginActive}
+          onCheckedChange={(checked) => handleChange('pluginActive', checked)}
         />
         <Label htmlFor="insidious-mode">Enable InsidiousAI</Label>
       </div>
