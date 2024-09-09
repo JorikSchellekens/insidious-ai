@@ -1,7 +1,13 @@
 import {PluginState} from "./types";
 
-export const DEFAULT_PLUGIN_STATE : PluginState = { apiKey: "", pluginActive: true, promptSelected: 1, paragraphLimit: 3, id: 1, selectedModel: 'gpt-4-1106-preview' };
-export const DB_VERSION = 1;
+export const DEFAULT_PLUGIN_STATE = {
+  selectedModel: '',
+  apiKey: '',
+  paragraphLimit: 1,
+  pluginActive: true,
+};
+
+export const DB_VERSION = 3; // Change this to match the version in database.ts
 
 export const AI_PROVIDERS = {
   'gpt-4-1106-preview': {

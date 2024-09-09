@@ -1,20 +1,17 @@
+import { DB_VERSION } from './constants';
+
 export const DBConfig = {
-  name: "Insidious",
-  version: 1,
+  name: "InsidiousAIDB",
+  version: DB_VERSION,
   objectStoresMeta: [
     {
       store: "prompts",
-      storeConfig: { keyPath: "name" },
+      storeConfig: { keyPath: "id", autoIncrement: true },
       storeSchema: [
-        { name: "name", keypath: "name", options: { unique: true } },
+        { name: "title", keypath: "title", options: { unique: false } },
         { name: "prompt", keypath: "prompt", options: { unique: false } },
       ],
     },
-    {
-      store: "pluginState",
-      storeConfig: { keyPath: "id", autoIncrement: true },
-      storeSchema: [
-      ],
-    },
+    // ... other object stores ...
   ],
 };
