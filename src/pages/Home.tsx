@@ -21,9 +21,7 @@ export function Home({ db }: HomeProps) {
           <PromptList
             pluginState={pluginState}
             updatePluginState={updatePluginState}
-            db={db}
           />
-          <AddPrompt />
           <div className="flex flex-col gap-2 items-center">
             <Label htmlFor="paragraphCount">Paragraph Count:</Label>
             <Input

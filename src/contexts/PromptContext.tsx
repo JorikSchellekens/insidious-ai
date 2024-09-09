@@ -6,15 +6,17 @@ interface PromptContextType {
   prompts: Prompt[];
   addPrompt: (newPrompt: Omit<Prompt, 'id'>) => void;
   deletePrompt: (id: number) => void;
+  updatePrompt: (id: number, updates: Partial<Omit<Prompt, 'id'>>) => void;
+  createPrompt: (newPrompt: Omit<Prompt, 'id'>) => void;
 }
 
 const PromptContext = createContext<PromptContextType | undefined>(undefined);
 
 export function PromptProvider({ children, db }: { children: React.ReactNode; db: IDBDatabase }) {
-  const { prompts, addPrompt, deletePrompt } = usePrompts(db);
+  const { prompts, addPrompt, deletePrompt, updatePrompt, createPrompt } = usePrompts(db);
 
   return (
-    <PromptContext.Provider value={{ prompts, addPrompt, deletePrompt }}>
+    <PromptContext.Provider value={{ prompts, addPrompt, deletePrompt, updatePrompt, createPrompt }}>
       {children}
     </PromptContext.Provider>
   );
