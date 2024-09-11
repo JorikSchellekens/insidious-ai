@@ -4,7 +4,7 @@
   "description": "Nothing can be trusted, everything can be improved",
   "manifest_version": 3,
   "author": "Jorik Schellekens",
-  "action":{
+  "action": {
     "default_popup": "index.html",
     "default_title": "Insidious AI!"
   },
@@ -15,14 +15,19 @@
     "128": "assets/insidious_icon.png"
   },
   "content_scripts": [
-   {
-     "matches": ["https://*.wikipedia.org/*"],
-     "js": ["src/content-scripts/wikipedia.ts"]
-   },
-   {
-    "matches": ["https://twitter.com/*"],
-    "js": ["src/content-scripts/twitter.ts"]
-   }
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-scripts/mainContentIdentifier.ts"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.wikipedia.org/*"],
+      "js": ["src/content-scripts/wikipedia.ts"]
+    },
+    {
+      "matches": ["https://twitter.com/*"],
+      "js": ["src/content-scripts/twitter.ts"]
+    }
   ],
   "background": {
     "service_worker": "src/service-worker.ts"
