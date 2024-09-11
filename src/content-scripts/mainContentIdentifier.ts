@@ -1,10 +1,15 @@
+// Queue to store new content elements
+const newContentQueue: Element[] = [];
+
+// Set to keep track of processed elements
+const processedElements = new Set<Element>();
+
 // Main function to identify the main content of a webpage
 const identifyMainContent = () => {
   console.log('Starting main content identification process');
 
   // Get all elements in the document body
   const allElements = Array.from(document.body.getElementsByTagName('*'));
-  const processedElements = new Set<Element>();
 
   // Helper function to apply multiple filters to an array of elements
   const applyFilters = (elements: Element[], filters: Array<(el: Element) => boolean>) =>
@@ -33,33 +38,26 @@ const identifyMainContent = () => {
   // Check if an element has long raw text content
   const hasLongRawTextContent = (element: Element): boolean => {
     const rawTextContent = getRawTextContent(element);
-    // Debug logging for specific content (can be removed in production)
-    if (rawTextContent.includes("Russell in 1911")) {
-      console.log(`Raw text content of element: `, rawTextContent);
-      console.log(`Length of raw text content: `, rawTextContent.length);
-    }
     return rawTextContent.length > 100;
-  };
-
-  // Mark an element and its children as processed
-  const markElementAndChildren = (element: Element) => {
-    processedElements.add(element);
-    element.querySelectorAll('*').forEach(child => processedElements.add(child));
   };
 
   // Filter elements that have direct text nodes and haven't been processed
   const potentialMainContent = allElements.filter(el => 
     !processedElements.has(el) && hasDirectTextNode(el)
   );
-  potentialMainContent.forEach(markElementAndChildren);
 
   // Apply visibility and content length filters
   const filters = [isPartiallyVisible, hasLongRawTextContent];
-  const uniqueMainContent = Array.from(new Set(applyFilters(potentialMainContent, filters)));
+  const newMainContent = applyFilters(potentialMainContent, filters);
 
-  // Highlight the identified main content elements
-  uniqueMainContent.forEach((el, index) => {
-    (el as HTMLElement).style.border = '3px solid #ff00ff';
+  // Add new content to the queue and mark as processed
+  newMainContent.forEach(el => {
+    if (!processedElements.has(el)) {
+      newContentQueue.push(el);
+      processedElements.add(el);
+      console.log('New content element found:', el);
+      highlightElement(el);
+    }
   });
 };
 
@@ -70,8 +68,20 @@ const getRawTextContent = (element: Element): string =>
     .map(node => node.textContent!.trim())
     .join(' ');
 
+// Function to highlight an element
+const highlightElement = (element: Element) => {
+  (element as HTMLElement).style.border = '3px solid #ff00ff';
+};
+
 // Run the identification process immediately
 identifyMainContent();
+
+// Add a scroll listener
+let scrollTimer: number;
+window.addEventListener('scroll', () => {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(identifyMainContent, 250) as unknown as number;
+});
 
 // Add a resize listener
 let resizeTimer: number;
