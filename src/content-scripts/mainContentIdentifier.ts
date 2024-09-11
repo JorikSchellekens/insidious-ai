@@ -1,84 +1,78 @@
-function identifyMainContent() {
+// Main function to identify the main content of a webpage
+const identifyMainContent = () => {
   console.log('Starting main content identification process');
 
-  const potentialMainContent: Element[] = [];
+  // Get all elements in the document body
+  const allElements = Array.from(document.body.getElementsByTagName('*'));
   const processedElements = new Set<Element>();
 
-  // Heuristic 1: Elements with raw text
-  console.log('Applying Heuristic 1: Elements with raw text');
-  const allElements = document.body.getElementsByTagName('*');
-  console.log(`Checking ${allElements.length} elements for raw text`);
-  
-  Array.from(allElements).forEach((el, index) => {
-    if (!processedElements.has(el) && hasDirectTextNode(el)) {
-      potentialMainContent.push(el);
-      console.log(`Element ${index} contains raw text: `, el);
-      markElementAndChildren(el, processedElements);
-    }
-  });
+  // Helper function to apply multiple filters to an array of elements
+  const applyFilters = (elements: Element[], filters: Array<(el: Element) => boolean>) =>
+    filters.reduce((filtered, filter) => filtered.filter(filter), elements);
 
-  // Heuristic 2: Visible elements with raw text
-  console.log('Applying Heuristic 2: Visible elements with raw text');
-  const visibleElements = potentialMainContent.filter(el => {
-    const rect = el.getBoundingClientRect();
+  // Check if an element has direct text content
+  const hasDirectTextNode = (element: Element): boolean =>
+    Array.from(element.childNodes).some(node => 
+      node.nodeType === Node.TEXT_NODE && node.textContent!.trim().length > 0
+    );
+
+  // Check if an element is visible in the viewport
+  const isVisible = (element: Element): boolean => {
+    const rect = element.getBoundingClientRect();
     return (
       rect.top >= 0 &&
       rect.left >= 0 &&
       rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
-  });
-  console.log(`Found ${visibleElements.length} visible elements with raw text`);
+  };
 
-  // Heuristic 3: Elements with raw text content above a certain length
-  console.log('Applying Heuristic 3: Elements with long raw text content');
-  const longContentElements = potentialMainContent.filter(el => {
-    const rawTextContent = getRawTextContent(el);
+  // Check if an element has long raw text content
+  const hasLongRawTextContent = (element: Element): boolean => {
+    const rawTextContent = getRawTextContent(element);
+    // Debug logging for specific content (can be removed in production)
+    if (rawTextContent.includes("Russell in 1911")) {
+      console.log(`Raw text content of element: `, rawTextContent);
+      console.log(`Length of raw text content: `, rawTextContent.length);
+    }
     return rawTextContent.length > 100;
-  });
-  console.log(`Found ${longContentElements.length} elements with long raw text content`);
+  };
 
-  // Combine and remove duplicates
-  const uniqueMainContent = Array.from(new Set([...visibleElements, ...longContentElements]));
-  console.log(`Identified ${uniqueMainContent.length} unique potential main content elements`);
+  // Mark an element and its children as processed
+  const markElementAndChildren = (element: Element) => {
+    processedElements.add(element);
+    element.querySelectorAll('*').forEach(child => processedElements.add(child));
+  };
 
-  // Highlight potential main content areas
+  // Filter elements that have direct text nodes and haven't been processed
+  const potentialMainContent = allElements.filter(el => 
+    !processedElements.has(el) && hasDirectTextNode(el)
+  );
+  potentialMainContent.forEach(markElementAndChildren);
+
+  // Apply visibility and content length filters
+  const filters = [isVisible, hasLongRawTextContent];
+  const uniqueMainContent = Array.from(new Set(applyFilters(potentialMainContent, filters)));
+
+  // Highlight the identified main content elements
   uniqueMainContent.forEach((el, index) => {
     (el as HTMLElement).style.border = '3px solid #ff00ff';
-    console.log(`Highlighted element ${index}: `, el);
   });
+};
 
-  console.log('Main content identification process completed');
-}
-
-function hasDirectTextNode(element: Element): boolean {
-  return Array.from(element.childNodes).some(node => 
-    node.nodeType === Node.TEXT_NODE && node.textContent!.trim().length > 0
-  );
-}
-
-function getRawTextContent(element: Element): string {
-  return Array.from(element.childNodes)
+// Helper function to get raw text content of an element
+const getRawTextContent = (element: Element): string =>
+  Array.from(element.childNodes)
     .filter(node => node.nodeType === Node.TEXT_NODE)
     .map(node => node.textContent!.trim())
     .join(' ');
-}
 
-function markElementAndChildren(element: Element, processedSet: Set<Element>) {
-  processedSet.add(element);
-  element.querySelectorAll('*').forEach(child => processedSet.add(child));
-}
+// Run the identification process immediately
+identifyMainContent();
 
-// Run the identification process when the page is loaded
-window.addEventListener('load', () => {
-  console.log('Page loaded, running identifyMainContent');
-  identifyMainContent();
-});
-
-// Re-run the process when the page is resized (for responsive layouts)
+// Add a resize listener
+let resizeTimer: number;
 window.addEventListener('resize', () => {
-  console.log('Window resized, re-running identifyMainContent');
-  identifyMainContent();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(identifyMainContent, 250) as unknown as number;
 });
-
-console.log('Content script loaded');
