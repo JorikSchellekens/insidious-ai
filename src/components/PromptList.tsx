@@ -13,15 +13,15 @@ interface PromptListProps {
 
 export function PromptList({ pluginState, updatePluginState }: PromptListProps) {
   const { prompts, deletePrompt, updatePrompt, createPrompt } = usePromptContext();
-  const [editingPrompt, setEditingPrompt] = useState<{ id?: number; title: string; prompt: string } | null>(null);
+  const [editingPrompt, setEditingPrompt] = useState<{ id?: string; title: string; prompt: string } | null>(null);
   const [newPromptTitle, setNewPromptTitle] = useState("");
   const [newPromptContent, setNewPromptContent] = useState("");
 
-  const handleSelect = (id: number) => {
+  const handleSelect = (id: string) => {
     updatePluginState({ promptSelected: id });
   };
 
-  const handleEdit = (prompt: { id: number; title: string; prompt: string }) => {
+  const handleEdit = (prompt: { id: string; title: string; prompt: string }) => {
     setEditingPrompt(prompt);
     setNewPromptTitle(prompt.title);
     setNewPromptContent(prompt.prompt);
@@ -42,7 +42,7 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     deletePrompt(id);
     if (pluginState.promptSelected === id) {
       updatePluginState({ promptSelected: undefined });

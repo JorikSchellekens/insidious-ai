@@ -8,7 +8,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { usePluginState } from './hooks/usePluginState';
 
 function App() {
-  const [db, setDB] = useState<IDBDatabase | undefined>();
+  const [db, setDB] = useState<IDBDatabase | null>(null);
   const [isFirstTime, setIsFirstTime] = useLocalStorage("isFirstTime", true);
   const { updatePluginState } = usePluginState(db);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +33,7 @@ function App() {
     }
   };
 
-  if (isLoading || db === undefined) {
+  if (isLoading || db === null) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 

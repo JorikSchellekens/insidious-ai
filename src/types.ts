@@ -1,14 +1,14 @@
 export type PluginState = {
   apiKey: string;
   pluginActive: boolean;
-  promptSelected: number;
+  promptSelected: string;
   paragraphLimit: number;
   id: string;
   selectedModel: string;
 }
 
 export type Prompt = {
-  id: number;
+  id: string;
   title: string;
   prompt: string;
 }

@@ -12,22 +12,16 @@ export function Home({ db }: HomeProps) {
   const { pluginState, updatePluginState } = usePluginState(db);
 
   useEffect(() => {
-    // Check plugin state on component mount
-    if (db) {
-      const transaction = db.transaction(["pluginState"], "readonly");
-      const objectStore = transaction.objectStore("pluginState");
-      const request = objectStore.get("currentState");
-
-      request.onsuccess = (event) => {
-        const { pluginActive } = (event.target as IDBRequest).result;
-        updatePluginState({ ...pluginState, pluginActive });
-      };
-    }
-  }, [db]);
+    console.log('Home component mounted, current pluginState:', pluginState);
+    // We don't need to fetch the state here anymore, as it's handled in usePluginState
+  }, []);
 
   const handleEnable = () => {
-    updatePluginState({ ...pluginState, pluginActive: true });
+    console.log('handleEnable called, current pluginActive:', pluginState.pluginActive);
+    updatePluginState({ pluginActive: true });
   };
+
+  console.log('Home component rendering, pluginState:', pluginState);
 
   return (
     <PromptProvider db={db}>

@@ -10,10 +10,10 @@ function formatSystemPrompt(prompt: string) {
   }
 }
 
-let db: IDBDatabase | undefined;
+let db: IDBDatabase | null;
 
 // Initialize the database
-initialiseDB(self.indexedDB, (database: IDBDatabase | undefined) => {
+initialiseDB(self.indexedDB, (database: IDBDatabase | null) => {
   db = database;
   console.log("Database initialized in service worker");
 });
@@ -105,7 +105,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
 }
 
 // @ts-ignore
-chrome.runtime.onMessage.addListener((request: Message, _: MessageSender, sendResponse: (response: any) => void) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log(request.type)
   if (request.type == "insidiate") {
     insidiate(request.text, sendResponse);
@@ -127,6 +127,34 @@ chrome.runtime.onMessage.addListener((request: Message, _: MessageSender, sendRe
       console.error("Error fetching paragraph limit:", (event.target as IDBRequest).error);
       sendResponse(1); // Default value
     };
+  }
+  if (request.type === "getPluginState") {
+    console.log("request received")
+    if (!db) {
+      console.error("Database not initialized");
+      sendResponse({ pluginActive: false }); // Assume inactive if DB is not ready
+      return true;
+    }
+    const transaction = db.transaction(["pluginState"], "readonly");
+    const objectStore = transaction.objectStore("pluginState");
+    const request = objectStore.get("currentState");
+    request.onsuccess = (event) => {
+      const { pluginActive } = (event.target as IDBRequest).result;
+      sendResponse({ pluginActive });
+    };
+    request.onerror = (event) => {
+      console.error("Error fetching plugin state:", (event.target as IDBRequest).error);
+      sendResponse({ pluginActive: false }); // Assume inactive on error
+    };
+    return true; // Indicates that the response is sent asynchronously
+  }
+  if (request.type === "pluginStateUpdated") {
+    // Update the local state in the service worker
+    if (db) {
+      const transaction = db.transaction(["pluginState"], "readwrite");
+      const objectStore = transaction.objectStore("pluginState");
+      objectStore.put(request.state);
+    }
   }
   return true;
 });

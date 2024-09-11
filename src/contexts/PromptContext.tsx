@@ -5,8 +5,8 @@ import { Prompt } from '../types';
 interface PromptContextType {
   prompts: Prompt[];
   addPrompt: (newPrompt: Omit<Prompt, 'id'>) => void;
-  deletePrompt: (id: number) => void;
-  updatePrompt: (id: number, updates: Partial<Omit<Prompt, 'id'>>) => void;
+  deletePrompt: (id: string) => void;
+  updatePrompt: (id: string, updates: Partial<Omit<Prompt, 'id'>>) => void;
   createPrompt: (newPrompt: Omit<Prompt, 'id'>) => void;
 }
 

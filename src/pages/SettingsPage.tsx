@@ -5,55 +5,60 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AI_PROVIDERS } from '../constants';
 import { usePluginState } from '../hooks/usePluginState';
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { Switch } from "@/components/ui/switch";
 
 interface SettingsPageProps {
-  db: IDBDatabase;
+  db: IDBDatabase | null;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
-  const [enabled, setEnabled] = useLocalStorage("enabled", true);
   const { pluginState, updatePluginState } = usePluginState(db);
-  const [localSettings, setLocalSettings] = useState({
-    selectedModel: pluginState.selectedModel,
-    apiKey: pluginState.apiKey || '',
-    paragraphLimit: pluginState.paragraphLimit || 1,
-    pluginActive: enabled
-  });
+  const [localSettings, setLocalSettings] = useState(pluginState);
+
+  useEffect(() => {
+    console.log('SettingsPage: pluginState updated:', pluginState);
+    setLocalSettings(pluginState);
+  }, [pluginState]);
 
   const llmModels = AI_PROVIDERS ? Object.keys(AI_PROVIDERS).map(model => ({
     value: model,
     label: model
   })) : [];
 
+  console.log('SettingsPage: Current localSettings:', localSettings);
+  console.log('SettingsPage: Available LLM models:', llmModels);
+
   useEffect(() => {
-    setLocalSettings(prevSettings => ({
-      ...prevSettings,
-      selectedModel: pluginState.selectedModel,
+    // Update local settings when pluginState changes
+    setLocalSettings({
+      selectedModel: pluginState.selectedModel || '',
       apiKey: pluginState.apiKey || '',
       paragraphLimit: pluginState.paragraphLimit || 1,
-      pluginActive: enabled
-    }));
-  }, [pluginState, enabled]);
+      pluginActive: pluginState.pluginActive || false,
+      promptSelected: pluginState.promptSelected || '',
+      id: pluginState.id || ''
+    });
+  }, [pluginState]);
 
   const handleSaveSettings = () => {
-    updatePluginState({
-      selectedModel: localSettings.selectedModel,
-      apiKey: localSettings.apiKey,
-      paragraphLimit: localSettings.paragraphLimit,
-      pluginActive: localSettings.pluginActive
-    });
-    setEnabled(localSettings.pluginActive);
+    console.log('Saving settings:', localSettings);
+    updatePluginState(localSettings);
     console.log('Settings saved', { ...localSettings, apiKey: '******' });
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
-    setLocalSettings(prevSettings => ({
-      ...prevSettings,
+    const updatedSettings = {
+      ...localSettings,
       [field]: value
-    }));
+    };
+    console.log(`SettingsPage: Updating ${field}:`, value);
+    setLocalSettings(updatedSettings);
   };
+
+  if (!db) {
+    console.log('SettingsPage: Database not initialized');
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6 p-6">

@@ -8,6 +8,7 @@ const processedElements = new Set<Element>();
 const isPluginDisabled = async (): Promise<boolean> => {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: "getPluginState" }, (response) => {
+        console.log(response)
       resolve(!response?.pluginActive);
     });
   });

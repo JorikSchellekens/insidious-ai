@@ -18,15 +18,12 @@ export function usePrompts(db: IDBDatabase) {
   const addPrompt = (newPrompt: Omit<Prompt, 'id'>) => {
     const transaction = db.transaction(['prompts'], 'readwrite');
     const objectStore = transaction.objectStore('prompts');
-    const request = objectStore.add(newPrompt);
-
-    request.onsuccess = (event) => {
-      const id = (event.target as IDBRequest).result as number;
-      setPrompts([...prompts, { id, ...newPrompt }]);
-    };
+    const id = crypto.randomUUID();
+    objectStore.put({ id, ...newPrompt });
+    setPrompts([...prompts, { id, ...newPrompt }]);
   };
 
-  const deletePrompt = (id: number) => {
+  const deletePrompt = (id: string) => {
     const transaction = db.transaction(['prompts'], 'readwrite');
     const objectStore = transaction.objectStore('prompts');
     objectStore.delete(id);
@@ -34,7 +31,7 @@ export function usePrompts(db: IDBDatabase) {
     setPrompts(prompts.filter(prompt => prompt.id !== id));
   };
 
-  const updatePrompt = (id: number, updates: Partial<Omit<Prompt, 'id'>>) => {
+  const updatePrompt = (id: string, updates: Partial<Omit<Prompt, 'id'>>) => {
     const transaction = db.transaction(['prompts'], 'readwrite');
     const objectStore = transaction.objectStore('prompts');
     const request = objectStore.get(id);

@@ -4,7 +4,7 @@ import { prompts as defaultPrompts } from './prompts';
 
 export default function initialiseDB(
   indexedDB: IDBFactory,
-  setDB: (db: IDBDatabase | undefined) => void
+  setDB: (db: IDBDatabase | null) => void
 ) {
   const request = indexedDB.open(DBConfig.name, DBConfig.version);
 
