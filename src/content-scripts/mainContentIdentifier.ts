@@ -16,14 +16,17 @@ const identifyMainContent = () => {
       node.nodeType === Node.TEXT_NODE && node.textContent!.trim().length > 0
     );
 
-  // Check if an element is visible in the viewport
-  const isVisible = (element: Element): boolean => {
+  // Check if an element is at least partially visible in the viewport
+  const isPartiallyVisible = (element: Element): boolean => {
     const rect = element.getBoundingClientRect();
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+    
     return (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      rect.top < windowHeight &&
+      rect.left < windowWidth &&
+      rect.bottom > 0 &&
+      rect.right > 0
     );
   };
 
@@ -51,7 +54,7 @@ const identifyMainContent = () => {
   potentialMainContent.forEach(markElementAndChildren);
 
   // Apply visibility and content length filters
-  const filters = [isVisible, hasLongRawTextContent];
+  const filters = [isPartiallyVisible, hasLongRawTextContent];
   const uniqueMainContent = Array.from(new Set(applyFilters(potentialMainContent, filters)));
 
   // Highlight the identified main content elements
