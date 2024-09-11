@@ -4,7 +4,7 @@ import { prompts as defaultPrompts } from './prompts';
 
 export default function initialiseDB(
   indexedDB: IDBFactory,
-  setDB: React.Dispatch<React.SetStateAction<IDBDatabase | undefined>>
+  setDB: (db: IDBDatabase | undefined) => void
 ) {
   const request = indexedDB.open(DBConfig.name, DBConfig.version);
 

@@ -5,9 +5,10 @@ export const DEFAULT_PLUGIN_STATE = {
   apiKey: '',
   paragraphLimit: 1,
   pluginActive: true,
+  promptSelected: -1, // Add this line
 };
 
-export const DB_VERSION = 3; // Change this to match the version in database.ts
+export const DB_VERSION = 4; // Increment this
 
 export const AI_PROVIDERS = {
   'gpt-4-1106-preview': {

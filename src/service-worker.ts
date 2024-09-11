@@ -10,68 +10,98 @@ function formatSystemPrompt(prompt: string) {
   }
 }
 
-let db: IDBDatabase;
+let db: IDBDatabase | undefined;
 
-initialiseDB(indexedDB, (_db: IDBDatabase | undefined) => {
-  if (_db === undefined) return;
-  db = _db;
+// Initialize the database
+initialiseDB(self.indexedDB, (database: IDBDatabase | undefined) => {
+  db = database;
+  console.log("Database initialized in service worker");
 });
 
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
-  db
-    .transaction("pluginstate")
-    .objectStore("pluginstate")
-    .getAll().onsuccess = (event: Event) => {
-      const { apiKey, promptSelected, pluginActive, selectedModel } = (event.target as IDBRequest).result[0];
-      if (!pluginActive) { console.log("insidious disabled"); return; }
+  if (!db) {
+    console.error("Database not initialized");
+    sendResponse('Database not initialized. Please try again later.');
+    return;
+  }
 
-      db
-        .transaction("prompts")
-        .objectStore("prompts")
-        .get(promptSelected).onsuccess = (event: Event) => {
-          const { prompt } = (event.target as IDBRequest).result;
-          console.log(prompt);
+  const transaction = db.transaction(["pluginState"], "readonly");
+  const objectStore = transaction.objectStore("pluginState");
+  const request = objectStore.get("currentState");
 
-          const provider = AI_PROVIDERS[selectedModel as AIProviderKey];
-          if (!provider) {
-            console.error(`Unsupported model: ${selectedModel}`);
-            return;
-          }
-
-          fetch(
-            provider.url,
-            {
-              method: "POST",
-              headers: provider.headers(apiKey),
-              body: JSON.stringify(
-                provider.bodyFormatter([
-                  formatSystemPrompt(prompt),
-                  {
-                    "role": "user",
-                    "content": text
-                  }
-                ])
-              ),
-            }
-          ).then(async (response: Response) => {
-            const body = await response.json();
-            console.log(body);
-            let content;
-            if (selectedModel.startsWith('claude')) {
-              content = body.content[0].text;
-            } else {
-              content = body.choices[0].message.content;
-            }
-            console.log(content);
-            sendResponse(content);
-          }).catch(error => {
-            console.error('Error:', error);
-            sendResponse('An error occurred while processing your request.');
-          });
-        };
+  request.onsuccess = (event) => {
+    const { apiKey, promptSelected, pluginActive, selectedModel } = (event.target as IDBRequest).result;
+    if (!pluginActive) { 
+      console.log("insidious disabled"); 
+      sendResponse('Insidious is currently disabled.');
+      return; 
     }
+
+    if (!db) {
+      console.error("Database not initialized");
+      sendResponse('Database not initialized. Please try again later.');
+      return;
+    }
+
+    const promptTransaction = db.transaction(["prompts"], "readonly");
+    const promptObjectStore = promptTransaction.objectStore("prompts");
+    const promptRequest = promptObjectStore.get(promptSelected);
+
+    promptRequest.onsuccess = (event) => {
+      const { prompt } = (event.target as IDBRequest).result;
+      console.log(prompt);
+
+      const provider = AI_PROVIDERS[selectedModel as AIProviderKey];
+      if (!provider) {
+        console.error(`Unsupported model: ${selectedModel}`);
+        sendResponse(`Unsupported model: ${selectedModel}`);
+        return;
+      }
+
+      fetch(
+        provider.url,
+        {
+          method: "POST",
+          headers: provider.headers(apiKey),
+          body: JSON.stringify(
+            provider.bodyFormatter([
+              formatSystemPrompt(prompt),
+              {
+                "role": "user",
+                "content": text
+              }
+            ])
+          ),
+        }
+      ).then(async (response: Response) => {
+        const body = await response.json();
+        console.log(body);
+        let content;
+        if (selectedModel.startsWith('claude')) {
+          content = body.content[0].text;
+        } else {
+          content = body.choices[0].message.content;
+        }
+        console.log(content);
+        sendResponse(content);
+      }).catch(error => {
+        console.error('Error:', error);
+        sendResponse('An error occurred while processing your request.');
+      });
+    };
+
+    promptRequest.onerror = (event) => {
+      console.error("Error fetching prompt:", (event.target as IDBRequest).error);
+      sendResponse('Error fetching prompt. Please try again.');
+    };
+  };
+
+  request.onerror = (event) => {
+    console.error("Error fetching plugin state:", (event.target as IDBRequest).error);
+    sendResponse('Error fetching plugin state. Please try again.');
+  };
 }
 
 // @ts-ignore
@@ -81,14 +111,22 @@ chrome.runtime.onMessage.addListener((request: Message, _: MessageSender, sendRe
     insidiate(request.text, sendResponse);
   } else if (request.type == "paragraphLimit") {
     console.log("request received")
-    db
-      .transaction("pluginstate")
-      .objectStore("pluginstate")
-      .getAll().onsuccess = (event: Event) => {
-        console.log("asdasdfasdf")
-        const { paragraphLimit } = (event.target as IDBRequest).result[0];
-        sendResponse(paragraphLimit);
-      }
+    if (!db) {
+      console.error("Database not initialized");
+      sendResponse(1); // Default value
+      return true;
+    }
+    const transaction = db.transaction(["pluginState"], "readonly");
+    const objectStore = transaction.objectStore("pluginState");
+    const request = objectStore.get("currentState");
+    request.onsuccess = (event) => {
+      const { paragraphLimit } = (event.target as IDBRequest).result;
+      sendResponse(paragraphLimit);
+    };
+    request.onerror = (event) => {
+      console.error("Error fetching paragraph limit:", (event.target as IDBRequest).error);
+      sendResponse(1); // Default value
+    };
   }
   return true;
 });

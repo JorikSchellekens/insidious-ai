@@ -3,7 +3,7 @@ export type PluginState = {
   pluginActive: boolean;
   promptSelected: number;
   paragraphLimit: number;
-  id: 1;
+  id: string;
   selectedModel: string;
 }
 

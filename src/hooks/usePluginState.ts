@@ -7,10 +7,15 @@ export interface PluginState {
   apiKey: string;
   paragraphLimit: number;
   pluginActive: boolean;
+  promptSelected: number; // Add this line
 }
 
 export const usePluginState = (db: IDBDatabase | undefined) => {
-  const [pluginState, setPluginState] = useState<PluginState>({ id: 'currentState', ...DEFAULT_PLUGIN_STATE });
+  const [pluginState, setPluginState] = useState<PluginState>({ 
+    id: 'currentState', 
+    ...DEFAULT_PLUGIN_STATE,
+    promptSelected: -1 // Add a default value
+  });
 
   useEffect(() => {
     if (db && db.objectStoreNames.contains('pluginState')) {
