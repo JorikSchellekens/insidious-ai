@@ -4,7 +4,7 @@ import { AI_PROVIDERS } from "./constants";
 console.log("Bending reality.");
 
 function formatSystemPrompt(prompt: string) {
-  const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Do not add any prefixes, suffixes, or formatting unless explicitly asked.";
+  const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Preserve any non-textual styling or formatting present in the original text. If the original text contains HTML elements or other markup, maintain a similar structure in your response. Do not add any prefixes, suffixes, or additional formatting unless explicitly asked.";
   return {
     "role": "system",
     "content": `${prefix}\n\n${prompt}`
