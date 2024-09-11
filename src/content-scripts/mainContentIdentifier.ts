@@ -1,3 +1,28 @@
+// Add this at the beginning of the file
+const injectMainContentCSS = () => {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes insidious-waiting {
+      0% { box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.4), 0 0 5px rgba(255, 0, 255, 0.4); }
+      50% { box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.8), 0 0 10px rgba(255, 0, 255, 0.8); }
+      100% { box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.4), 0 0 5px rgba(255, 0, 255, 0.4); }
+    }
+    .insidious-waiting {
+      box-shadow: 0 0 0 2px rgba(255, 0, 255, 0.4), 0 0 5px rgba(255, 0, 255, 0.4);
+      animation: insidious-waiting 1.5s infinite;
+    }
+    .insidious-content {
+      transition: opacity 0.3s ease-in-out;
+    }
+    .insidious-fade-out { opacity: 0; }
+    .insidious-fade-in { opacity: 1; }
+  `;
+  document.head.appendChild(style);
+};
+
+// Call this function immediately
+injectMainContentCSS();
+
 // Queue to store new content elements
 const newContentQueue: Element[] = [];
 
@@ -93,6 +118,9 @@ const processNewContent = async (elements: Element[]) => {
       newContentQueue.push(el);
       currentCount++;
 
+      // Add waiting animation class
+      el.classList.add('insidious-waiting');
+
       const message = {
         type: "insidiate",
         text: el.innerHTML,
@@ -103,14 +131,32 @@ const processNewContent = async (elements: Element[]) => {
         const oldHTML = el.innerHTML;
         el.innerHTML = response;
 
+        // Remove waiting animation class
+        el.classList.remove('insidious-waiting');
+
+        // Add insidious content class
+        el.classList.add('insidious-content');
+
         el.addEventListener('mouseover', () => {
-          el.innerHTML = oldHTML;
+          el.classList.add('insidious-fade-out');
+          setTimeout(() => {
+            el.innerHTML = oldHTML;
+            el.classList.remove('insidious-fade-out');
+            el.classList.add('insidious-fade-in');
+          }, 300);
         });
+
         el.addEventListener('mouseout', () => {
-          el.innerHTML = response;
+          el.classList.add('insidious-fade-out');
+          setTimeout(() => {
+            el.innerHTML = response;
+            el.classList.remove('insidious-fade-out');
+            el.classList.add('insidious-fade-in');
+          }, 300);
         });
       } catch (error) {
-        // Silently fail if there's an error processing the element
+        // Remove waiting animation class if there's an error
+        el.classList.remove('insidious-waiting');
       }
     }
   }

@@ -39,6 +39,8 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       return; 
     }
 
+    // Comment out the original AI request code
+    /*
     if (!db) {
       console.error("Database not initialized");
       sendResponse('Database not initialized. Please try again later.');
@@ -96,6 +98,12 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       console.error("Error fetching prompt:", (event.target as IDBRequest).error);
       sendResponse('Error fetching prompt. Please try again.');
     };
+    */
+
+    // Add a 3-second delay and then respond with "text replacement"
+    setTimeout(() => {
+      sendResponse("text replacement");
+    }, 9000);
   };
 
   request.onerror = (event) => {

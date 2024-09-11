@@ -1,0 +1,28 @@
+@keyframes insidious-waiting {
+  0% {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    border-color: rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.insidious-waiting {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  animation: insidious-waiting 1.5s infinite;
+}
+
+.insidious-content {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.insidious-fade-out {
+  opacity: 0;
+}
+
+.insidious-fade-in {
+  opacity: 1;
+}
