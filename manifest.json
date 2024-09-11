@@ -19,14 +19,6 @@
       "matches": ["<all_urls>"],
       "js": ["src/content-scripts/mainContentIdentifier.ts"],
       "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://*.wikipedia.org/*"],
-      "js": ["src/content-scripts/wikipedia.ts"]
-    },
-    {
-      "matches": ["https://twitter.com/*"],
-      "js": ["src/content-scripts/twitter.ts"]
     }
   ],
   "background": {

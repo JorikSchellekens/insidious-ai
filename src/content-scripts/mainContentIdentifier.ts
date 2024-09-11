@@ -6,8 +6,6 @@ const processedElements = new Set<Element>();
 
 // Main function to identify the main content of a webpage
 const identifyMainContent = () => {
-  console.log('Starting main content identification process');
-
   // Get all elements in the document body
   const allElements = Array.from(document.body.getElementsByTagName('*'));
 
@@ -38,7 +36,7 @@ const identifyMainContent = () => {
   // Check if an element has long raw text content
   const hasLongRawTextContent = (element: Element): boolean => {
     const rawTextContent = getRawTextContent(element);
-    return rawTextContent.length > 100;
+    return rawTextContent.length > 100 && rawTextContent.length < 1000;
   };
 
   // Filter elements that have direct text nodes and haven't been processed
@@ -50,15 +48,8 @@ const identifyMainContent = () => {
   const filters = [isPartiallyVisible, hasLongRawTextContent];
   const newMainContent = applyFilters(potentialMainContent, filters);
 
-  // Add new content to the queue and mark as processed
-  newMainContent.forEach(el => {
-    if (!processedElements.has(el)) {
-      newContentQueue.push(el);
-      processedElements.add(el);
-      console.log('New content element found:', el);
-      highlightElement(el);
-    }
-  });
+  // Process new content
+  processNewContent(newMainContent);
 };
 
 // Helper function to get raw text content of an element
@@ -68,9 +59,39 @@ const getRawTextContent = (element: Element): string =>
     .map(node => node.textContent!.trim())
     .join(' ');
 
-// Function to highlight an element
-const highlightElement = (element: Element) => {
-  (element as HTMLElement).style.border = '3px solid #ff00ff';
+// Function to process new content elements
+const processNewContent = async (elements: Element[]) => {
+  const paragraphLimit = await chrome.runtime.sendMessage({ type: "paragraphLimit" });
+  let currentCount = 0;
+
+  for (const el of elements) {
+    if (currentCount >= paragraphLimit) break;
+    if (!processedElements.has(el)) {
+      processedElements.add(el);
+      newContentQueue.push(el);
+      currentCount++;
+
+      const message = {
+        type: "insidiate",
+        text: el.innerHTML,
+      };
+
+      try {
+        const response = await chrome.runtime.sendMessage(message);
+        const oldHTML = el.innerHTML;
+        el.innerHTML = response;
+
+        el.onmouseover = () => {
+          el.innerHTML = oldHTML;
+        };
+        el.onmouseout = () => {
+          el.innerHTML = response;
+        };
+      } catch (error) {
+        // Silently fail if there's an error processing the element
+      }
+    }
+  }
 };
 
 // Run the identification process immediately
