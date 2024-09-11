@@ -21,6 +21,15 @@ initialiseDB(self.indexedDB, (database: IDBDatabase | null) => {
 
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
+interface PluginState {
+  apiKey: string;
+  promptSelected: string;
+  pluginActive: boolean;
+  selectedModel: string;
+  paragraphLimit: number;
+  hoverToReveal: boolean; // Add this line
+}
+
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
   if (!db) {
     console.error("Database not initialized");
@@ -133,21 +142,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("request received")
     if (!db) {
       console.error("Database not initialized");
-      sendResponse({ pluginActive: false }); // Assume inactive if DB is not ready
+      sendResponse({ pluginActive: false, hoverToReveal: true });
       return true;
     }
     const transaction = db.transaction(["pluginState"], "readonly");
     const objectStore = transaction.objectStore("pluginState");
     const request = objectStore.get("currentState");
     request.onsuccess = (event) => {
-      const { pluginActive } = (event.target as IDBRequest).result;
-      sendResponse({ pluginActive });
+      const state = (event.target as IDBRequest).result;
+      sendResponse({
+        pluginActive: state.pluginActive,
+        hoverToReveal: state.hoverToReveal !== undefined ? state.hoverToReveal : true
+      });
     };
     request.onerror = (event) => {
       console.error("Error fetching plugin state:", (event.target as IDBRequest).error);
-      sendResponse({ pluginActive: false }); // Assume inactive on error
+      sendResponse({ pluginActive: false, hoverToReveal: true });
     };
-    return true; // Indicates that the response is sent asynchronously
+    return true;
   }
   if (request.type === "pluginStateUpdated") {
     // Update the local state in the service worker
@@ -155,6 +167,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const transaction = db.transaction(["pluginState"], "readwrite");
       const objectStore = transaction.objectStore("pluginState");
       objectStore.put(request.state);
+      
+      // Broadcast the state change to all content scripts
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, { type: "pluginStateUpdated", state: request.state });
+          }
+        });
+      });
     }
   }
   if (request.type === "promptChanged") {

@@ -36,7 +36,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
       paragraphLimit: pluginState.paragraphLimit || 1,
       pluginActive: pluginState.pluginActive || false,
       promptSelected: pluginState.promptSelected || '',
-      id: pluginState.id || ''
+      id: pluginState.id || '',
+      hoverToReveal: pluginState.hoverToReveal ?? true, // Add this line
     });
   }, [pluginState]);
 
@@ -111,6 +112,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
           onCheckedChange={(checked) => handleChange('pluginActive', checked)}
         />
         <Label htmlFor="insidious-mode">Enable InsidiousAI</Label>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="hover-to-reveal"
+          checked={localSettings.hoverToReveal}
+          onCheckedChange={(checked) => handleChange('hoverToReveal', checked)}
+        />
+        <Label htmlFor="hover-to-reveal">Hover to Reveal Original Content</Label>
       </div>
 
       <Button className="w-full" onClick={handleSaveSettings}>

@@ -13,6 +13,7 @@ export const usePluginState = (db: IDBDatabase | null) => {
     paragraphLimit: 1,
     pluginActive: false,
     promptSelected: 'mem',
+    hoverToReveal: true, // Add this line with a default value
   });
 
   useEffect(() => {

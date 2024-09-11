@@ -5,6 +5,7 @@ export type PluginState = {
   paragraphLimit: number;
   id: string;
   selectedModel: string;
+  hoverToReveal: boolean; // Add this line
 }
 
 export type Prompt = {
