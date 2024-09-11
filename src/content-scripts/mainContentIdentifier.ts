@@ -4,8 +4,23 @@ const newContentQueue: Element[] = [];
 // Set to keep track of processed elements
 const processedElements = new Set<Element>();
 
+// Function to check if the plugin is disabled
+const isPluginDisabled = async (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "getPluginState" }, (response) => {
+      resolve(!response?.pluginActive);
+    });
+  });
+};
+
 // Main function to identify the main content of a webpage
-const identifyMainContent = () => {
+const identifyMainContent = async () => {
+  const isDisabled = await isPluginDisabled();
+  if (isDisabled) {
+    console.log('InsidiousAI is disabled. No content will be identified.');
+    return;
+  }
+
   // Get all elements in the document body
   const allElements = Array.from(document.body.getElementsByTagName('*'));
 
@@ -61,6 +76,12 @@ const getRawTextContent = (element: Element): string =>
 
 // Function to process new content elements
 const processNewContent = async (elements: Element[]) => {
+  const isDisabled = await isPluginDisabled();
+  if (isDisabled) {
+    console.log('InsidiousAI is disabled. No changes will be applied.');
+    return;
+  }
+
   const paragraphLimit = await chrome.runtime.sendMessage({ type: "paragraphLimit" });
   let currentCount = 0;
 
@@ -81,12 +102,12 @@ const processNewContent = async (elements: Element[]) => {
         const oldHTML = el.innerHTML;
         el.innerHTML = response;
 
-        el.onmouseover = () => {
+        el.addEventListener('mouseover', () => {
           el.innerHTML = oldHTML;
-        };
-        el.onmouseout = () => {
+        });
+        el.addEventListener('mouseout', () => {
           el.innerHTML = response;
-        };
+        });
       } catch (error) {
         // Silently fail if there's an error processing the element
       }
