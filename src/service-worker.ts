@@ -4,9 +4,10 @@ import { AI_PROVIDERS } from "./constants";
 console.log("Bending reality.");
 
 function formatSystemPrompt(prompt: string) {
+  const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Do not add any prefixes, suffixes, or formatting unless explicitly asked.";
   return {
     "role": "system",
-    "content": prompt
+    "content": `${prefix}\n\n${prompt}`
   }
 }
 
@@ -39,8 +40,6 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       return; 
     }
 
-    // Comment out the original AI request code
-    /*
     if (!db) {
       console.error("Database not initialized");
       sendResponse('Database not initialized. Please try again later.');
@@ -98,12 +97,6 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       console.error("Error fetching prompt:", (event.target as IDBRequest).error);
       sendResponse('Error fetching prompt. Please try again.');
     };
-    */
-
-    // Add a 3-second delay and then respond with "text replacement"
-    setTimeout(() => {
-      sendResponse("text replacement");
-    }, 9000);
   };
 
   request.onerror = (event) => {
