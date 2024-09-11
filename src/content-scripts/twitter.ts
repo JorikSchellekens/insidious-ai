@@ -1,4 +1,4 @@
-import { injectCSS, isPluginDisabled, getParagraphLimit, processContent } from './common';
+import { injectCSS, isPluginDisabled, getParagraphLimit, processContent, listenForPromptChanges } from './common';
 import debounce from "lodash.debounce";
 
 console.log("Twitter content script is active.");
@@ -26,7 +26,12 @@ const initTwitterScript = async () => {
         currentCount++;
 
         const oldHTML = p.innerHTML;
-        await processContent(p as HTMLElement, p.innerHTML, oldHTML, chrome.runtime.sendMessage);
+        await processContent(p as HTMLElement, p.innerHTML, oldHTML, chrome.runtime.sendMessage, () => {
+          // Reset function
+          seen.delete(p.id);
+          currentCount--;
+          p.innerHTML = oldHTML;
+        });
       });
   }, 250);
 
@@ -34,3 +39,12 @@ const initTwitterScript = async () => {
 };
 
 initTwitterScript();
+
+// Add this at the end of the file
+listenForPromptChanges(() => {
+  // Reset and reinitialize
+  document.querySelectorAll('[data-testid="tweetText"]').forEach(p => {
+    p.innerHTML = p.getAttribute('data-original-html') || p.innerHTML;
+  });
+  initTwitterScript();
+});

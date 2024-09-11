@@ -1,4 +1,4 @@
-import { injectCSS, isPluginDisabled, getParagraphLimit, processContent } from './common';
+import { injectCSS, isPluginDisabled, getParagraphLimit, processContent, listenForPromptChanges } from './common';
 
 console.log("Main content identifier is active.");
 
@@ -54,19 +54,22 @@ const processNewContent = async (elements: Element[]) => {
   }
 
   const paragraphLimit = await getParagraphLimit();
-  let currentCount = 0;
+  const elementsToProcess = elements.slice(0, paragraphLimit);
 
-  for (const el of elements) {
-    if (currentCount >= paragraphLimit) break;
+  const processingPromises = elementsToProcess.map(async (el) => {
     if (!processedElements.has(el)) {
       processedElements.add(el);
       newContentQueue.push(el);
-      currentCount++;
 
       const oldHTML = el.innerHTML;
-      await processContent(el as HTMLElement, el.innerHTML, oldHTML, chrome.runtime.sendMessage);
+      await processContent(el as HTMLElement, el.innerHTML, oldHTML, chrome.runtime.sendMessage, () => {
+        processedElements.delete(el);
+        newContentQueue.splice(newContentQueue.indexOf(el), 1);
+      });
     }
-  }
+  });
+
+  await Promise.all(processingPromises);
 };
 
 identifyMainContent();
@@ -81,3 +84,10 @@ function debounce(func: Function, wait: number) {
     timeout = setTimeout(() => func.apply(this, args), wait) as unknown as number;
   };
 }
+
+// Add this at the end of the file
+listenForPromptChanges(() => {
+  processedElements.clear();
+  newContentQueue.length = 0;
+  identifyMainContent();
+});

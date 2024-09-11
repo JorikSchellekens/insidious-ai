@@ -157,6 +157,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       objectStore.put(request.state);
     }
   }
+  if (request.type === "promptChanged") {
+    // Broadcast the prompt change to all content scripts
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id) {
+          chrome.tabs.sendMessage(tab.id, { type: "promptChanged" });
+        }
+      });
+    });
+  }
   return true;
 });
 

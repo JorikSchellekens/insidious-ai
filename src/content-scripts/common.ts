@@ -44,12 +44,22 @@ export const getParagraphLimit = (): Promise<number> => {
   });
 };
 
-// Function to process content
+// Add this new function to listen for prompt changes
+export const listenForPromptChanges = (callback: () => void) => {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "promptChanged") {
+      callback();
+    }
+  });
+};
+
+// Modify the processContent function to accept a reset function
 export const processContent = async (
   element: HTMLElement,
   text: string,
   oldHTML: string,
-  sendMessage: (message: any) => Promise<any>
+  sendMessage: (message: any) => Promise<any>,
+  reset: () => void
 ) => {
   element.classList.add('insidious-waiting');
 
@@ -57,6 +67,9 @@ export const processContent = async (
     const response = await sendMessage({ type: "insidiate", text });
     element.classList.remove('insidious-waiting');
     element.classList.add('insidious-content');
+
+    // Immediately update the content
+    element.innerHTML = response;
 
     const toggleContent = (showOriginal: boolean) => {
       element.classList.add('insidious-fade-out');
@@ -80,6 +93,13 @@ export const processContent = async (
 
     element.addEventListener('mouseover', () => toggleContent(true));
     element.addEventListener('mouseout', () => toggleContent(false));
+
+    // Add listener for prompt changes
+    listenForPromptChanges(() => {
+      element.innerHTML = oldHTML;
+      element.classList.remove('insidious-content', 'insidious-waiting');
+      reset();
+    });
   } catch (error) {
     element.classList.remove('insidious-waiting');
     console.error('Error processing content:', error);

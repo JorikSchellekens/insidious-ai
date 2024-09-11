@@ -1,4 +1,4 @@
-import { injectCSS, isPluginDisabled, getParagraphLimit, processContent } from './common';
+import { injectCSS, isPluginDisabled, getParagraphLimit, processContent, listenForPromptChanges } from './common';
 
 console.log("Wikipedia content script is active.");
 
@@ -18,8 +18,14 @@ const initWikipediaScript = async () => {
 
   for (const p of paragraphs) {
     const oldHTML = p.innerHTML;
-    await processContent(p as HTMLElement, p.innerHTML, oldHTML, chrome.runtime.sendMessage);
+    await processContent(p as HTMLElement, p.innerHTML, oldHTML, chrome.runtime.sendMessage, () => {
+      // Reset function
+      p.innerHTML = oldHTML;
+    });
   }
 };
 
 initWikipediaScript();
+
+// Add this at the end of the file
+listenForPromptChanges(initWikipediaScript);
