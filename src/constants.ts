@@ -1,5 +1,3 @@
-import {PluginState} from "./types";
-
 export const DEFAULT_PLUGIN_STATE = {
   selectedModel: '',
   apiKey: '',
