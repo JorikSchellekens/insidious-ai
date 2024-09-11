@@ -1,6 +1,6 @@
 console.log("Warning, insidious things are happening to your content.");
 
-// Add this function
+// Update the injectWikipediaCSS function
 const injectWikipediaCSS = () => {
   const style = document.createElement('style');
   style.textContent = `
@@ -14,10 +14,14 @@ const injectWikipediaCSS = () => {
       animation: insidious-waiting 1.5s infinite;
     }
     .insidious-content {
-      transition: opacity 0.3s ease-in-out;
+      transition: opacity 0.3s ease-in-out, max-height 0.5s ease-in-out;
     }
-    .insidious-fade-out { opacity: 0; }
-    .insidious-fade-in { opacity: 1; }
+    .insidious-fade-out {
+      opacity: 0;
+    }
+    .insidious-fade-in {
+      opacity: 1;
+    }
   `;
   document.head.appendChild(style);
 };
@@ -37,32 +41,41 @@ chrome.runtime.sendMessage({ type: "paragraphLimit" }).then((paragraphLimit) => 
         type: "insidiate",
         text: p.innerHTML,
       };
-      const response = await chrome.runtime.sendMessage(message);
-      let oldHTML = p.innerHTML;
-      p.innerHTML = response;
+      try {
+        const response = await chrome.runtime.sendMessage(message);
+        const oldHTML = p.innerHTML;
+        
+        // Remove waiting animation class
+        p.classList.remove('insidious-waiting');
 
-      // Remove waiting animation class
-      p.classList.remove('insidious-waiting');
+        // Add insidious content class
+        p.classList.add('insidious-content');
 
-      // Add insidious content class
-      p.classList.add('insidious-content');
+        const toggleContent = (showOriginal: boolean) => {
+          p.classList.add('insidious-fade-out');
+          
+          setTimeout(() => {
+            p.innerHTML = showOriginal ? oldHTML : response;
+            const newHeight = (p as HTMLElement).scrollHeight;
+            (p as HTMLElement).style.maxHeight = `${newHeight}px`;
+            
+            setTimeout(() => {
+              p.classList.remove('insidious-fade-out');
+              p.classList.add('insidious-fade-in');
+              
+              setTimeout(() => {
+                p.classList.remove('insidious-fade-in');
+                (p as HTMLElement).style.maxHeight = '';
+              }, 300);
+            }, 300);
+          }, 300);
+        };
 
-      p.onmouseover = () => {
-        p.classList.add('insidious-fade-out');
-        setTimeout(() => {
-          p.innerHTML = oldHTML;
-          p.classList.remove('insidious-fade-out');
-          p.classList.add('insidious-fade-in');
-        }, 300);
-      };
-
-      p.onmouseout = () => {
-        p.classList.add('insidious-fade-out');
-        setTimeout(() => {
-          p.innerHTML = response;
-          p.classList.remove('insidious-fade-out');
-          p.classList.add('insidious-fade-in');
-        }, 300);
-      };
+        p.addEventListener('mouseover', () => toggleContent(true));
+        p.addEventListener('mouseout', () => toggleContent(false));
+      } catch (error) {
+        // Remove waiting animation class if there's an error
+        p.classList.remove('insidious-waiting');
+      }
     });
 });

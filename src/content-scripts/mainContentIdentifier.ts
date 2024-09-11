@@ -12,10 +12,14 @@ const injectMainContentCSS = () => {
       animation: insidious-waiting 1.5s infinite;
     }
     .insidious-content {
-      transition: opacity 0.3s ease-in-out;
+      transition: opacity 0.3s ease-in-out, max-height 0.5s ease-in-out;
     }
-    .insidious-fade-out { opacity: 0; }
-    .insidious-fade-in { opacity: 1; }
+    .insidious-fade-out {
+      opacity: 0;
+    }
+    .insidious-fade-in {
+      opacity: 1;
+    }
   `;
   document.head.appendChild(style);
 };
@@ -129,31 +133,35 @@ const processNewContent = async (elements: Element[]) => {
       try {
         const response = await chrome.runtime.sendMessage(message);
         const oldHTML = el.innerHTML;
-        el.innerHTML = response;
-
+        
         // Remove waiting animation class
         el.classList.remove('insidious-waiting');
 
         // Add insidious content class
         el.classList.add('insidious-content');
 
-        el.addEventListener('mouseover', () => {
+        const toggleContent = (showOriginal: boolean) => {
           el.classList.add('insidious-fade-out');
+          
           setTimeout(() => {
-            el.innerHTML = oldHTML;
-            el.classList.remove('insidious-fade-out');
-            el.classList.add('insidious-fade-in');
+            el.innerHTML = showOriginal ? oldHTML : response;
+            const newHeight = (el as HTMLElement).scrollHeight;
+            (el as HTMLElement).style.maxHeight = `${newHeight}px`;
+            
+            setTimeout(() => {
+              el.classList.remove('insidious-fade-out');
+              el.classList.add('insidious-fade-in');
+              
+              setTimeout(() => {
+                el.classList.remove('insidious-fade-in');
+                (el as HTMLElement).style.maxHeight = '';
+              }, 300);
+            }, 300);
           }, 300);
-        });
+        };
 
-        el.addEventListener('mouseout', () => {
-          el.classList.add('insidious-fade-out');
-          setTimeout(() => {
-            el.innerHTML = response;
-            el.classList.remove('insidious-fade-out');
-            el.classList.add('insidious-fade-in');
-          }, 300);
-        });
+        el.addEventListener('mouseover', () => toggleContent(true));
+        el.addEventListener('mouseout', () => toggleContent(false));
       } catch (error) {
         // Remove waiting animation class if there's an error
         el.classList.remove('insidious-waiting');
