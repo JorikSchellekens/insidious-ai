@@ -2,23 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Login } from './Login';
 import ModelAndApiKeyForm from './ModelAndApiKeyForm';
-import { InstantReactWeb, User } from '@instantdb/react';
+import { InstantReactWeb, User, tx } from '@instantdb/react';
 import { DBSchema } from '@/types';
-import { useUserSettings } from '../hooks/useUserSettings';
+import { DEFAULT_USER_SETTINGS } from '@/constants';
+import { useLocalStorage } from '@uidotdev/usehooks';
 
 interface FirstTimeFlowProps {
-  onComplete: (model: string, apiKey: string, user: User) => void;
   db: InstantReactWeb<DBSchema>;
 }
 
-const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete, db }) => {
+const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ db }) => {
   const [step, setStep] = useState(0);
-  const [model, setModel] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [error, setError] = useState('');
-  const [user, setUser] = useState<User | null>(null);
-
-  const { userSettings, updateUserSettings } = useUserSettings(db);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('sentEmail');
@@ -49,34 +43,6 @@ const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete, db }) => {
       window.removeEventListener('keydown', handleInteraction);
     };
   }, [step]);
-
-  const handleLogin = async (loggedInUser: User) => {
-    setUser(loggedInUser);
-    const { data } = await db.useQuery({ userSettings: { $: { where: { id: loggedInUser.id } } } });
-    
-    if (data && data.userSettings.length > 0) {
-      // User exists, load settings and complete flow
-      const settings = data.userSettings[0];
-      onComplete(settings.selectedModel, settings.apiKey, loggedInUser);
-    } else {
-      // New user, continue to model selection
-      setStep(4);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!model || !apiKey) {
-      setError('Please fill in all fields');
-      return;
-    }
-    if (user) {
-      updateUserSettings({ selectedModel: model, apiKey }, user);
-      onComplete(model, apiKey, user);
-    } else {
-      setError('Please log in first');
-    }
-  };
 
   const fadeVariants = {
     hidden: { opacity: 0 },
@@ -110,7 +76,7 @@ const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete, db }) => {
             Control your reality
           </motion.h2>
         )}
-        {step >= 2 && (
+        {step === 2 && (
           <motion.div
             key="login"
             initial="hidden"
@@ -118,18 +84,8 @@ const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete, db }) => {
             exit="hidden"
             variants={fadeVariants}
           >
-            <Login db={db} onLogin={handleLogin} />
+            <Login db={db}/>
           </motion.div>
-        )}
-        {step === 4 && (
-          <ModelAndApiKeyForm
-            model={model}
-            setModel={setModel}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            error={error}
-            onSubmit={handleSubmit}
-          />
         )}
       </AnimatePresence>
     </div>

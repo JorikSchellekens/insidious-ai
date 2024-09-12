@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AI_PROVIDERS } from '../constants';
+import { InstantReactWeb, User } from '@instantdb/react';
+import { DBSchema } from '@/types';
 
 interface ModelAndApiKeyFormProps {
   model: string;
@@ -12,6 +14,9 @@ interface ModelAndApiKeyFormProps {
   setApiKey: (apiKey: string) => void;
   error: string;
   onSubmit: (e: React.FormEvent) => void;
+  skip: () => void;
+  user: User;
+  db: InstantReactWeb<DBSchema>;
 }
 
 const ModelAndApiKeyForm: React.FC<ModelAndApiKeyFormProps> = ({
@@ -20,8 +25,28 @@ const ModelAndApiKeyForm: React.FC<ModelAndApiKeyFormProps> = ({
   apiKey,
   setApiKey,
   error,
-  onSubmit
+  onSubmit,
+  user,
+  skip,
+  db,
 }) => {
+  const {isLoading, error: userSettingsError, data: userSettingsData} = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
+
+  // spinner
+  if (isLoading) return <div>Loading...</div>
+
+  // error
+  if (userSettingsError) return <p>Error: {userSettingsError.message}</p>;
+
+  // user settings
+  const userSettings = userSettingsData?.userSettings[0];
+
+  // If there are use settings, create one
+  if (userSettings) {
+    skip();
+
+  }
+
   const fadeVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },

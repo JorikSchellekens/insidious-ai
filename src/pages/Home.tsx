@@ -10,11 +10,21 @@ interface HomeProps {
 }
 
 export function Home({ db, user }: HomeProps) {
-  const { data: userData } = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
-  if (!userData) {
+  const { isLoading, error, data: userData } = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
+  if (isLoading) {
     return <div>Loading...</div>;
   }
-  const userSettings = userData?.userSettings[0];
+  
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!userData || !userData.userSettings || userData.userSettings.length === 0 ) {
+    return <div>No user data</div>;
+  }
+
+  const userSettings = userData.userSettings[0];
+  console.log('userSettings', userSettings);
 
   const handleEnable = () => {
     db.transact([

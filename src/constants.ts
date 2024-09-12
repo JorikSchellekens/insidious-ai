@@ -1,9 +1,14 @@
-export const DEFAULT_PLUGIN_STATE = {
+import { UserSettings } from "./types";
+
+// New user settings
+export const DEFAULT_USER_SETTINGS: UserSettings = {
   selectedModel: '',
   apiKey: '',
   paragraphLimit: 1,
   pluginActive: true,
-  promptSelected: -1, // Add this line
+  promptSelected: "",
+  email: "",
+  hoverToReveal: false,
 };
 
 export const DB_VERSION = 4; // Increment this

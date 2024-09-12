@@ -7,10 +7,9 @@ import { ArrowLeft } from 'lucide-react'; // Import ArrowLeft icon
 
 interface LoginProps {
   db: InstantReactWeb<DBSchema>;
-  onLogin: (user: any) => void;
 }
 
-export function Login({ db, onLogin }: LoginProps) {
+export function Login({ db }: LoginProps) {
   const [sentEmail, setSentEmail] = useState('');
   const [showMagicCode, setShowMagicCode] = useState(false);
 
@@ -34,11 +33,6 @@ export function Login({ db, onLogin }: LoginProps) {
     localStorage.removeItem('sentEmail');
   };
 
-  const handleLoginSuccess = (user: any) => {
-    onLogin(user);
-    localStorage.removeItem('sentEmail');
-  };
-
   return (
     <>
       {!showMagicCode ? (
@@ -47,7 +41,6 @@ export function Login({ db, onLogin }: LoginProps) {
         <MagicCode 
           sentEmail={sentEmail} 
           db={db} 
-          onLogin={handleLoginSuccess} 
           onBack={handleBack} 
         />
       )}
@@ -92,18 +85,17 @@ function Email({ setSentEmail, db }: EmailProps) {
 interface MagicCodeProps {
   sentEmail: string;
   db: InstantReactWeb<DBSchema>;
-  onLogin: (user: any) => void;
   onBack: () => void;
 }
 
-function MagicCode({ sentEmail, db, onLogin, onBack }: MagicCodeProps) {
+function MagicCode({ sentEmail, db, onBack }: MagicCodeProps) {
   const [code, setCode] = useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     db.auth.signInWithMagicCode({ email: sentEmail, code })
       .then((user) => {
-        onLogin(user);
+        localStorage.removeItem('sentEmail');
       })
       .catch((err) => {
         alert('Uh oh :' + err.body?.message);

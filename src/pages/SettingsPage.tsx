@@ -3,11 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AI_PROVIDERS } from '../constants';
-import { useUserSettings } from '../hooks/useUserSettings';
+import { AI_PROVIDERS, DEFAULT_USER_SETTINGS } from '../constants';
 import { Switch } from "@/components/ui/switch";
 import { DBSchema } from '@/types';
-import { InstantReactWeb, User } from '@instantdb/react';
+import { InstantReactWeb, User, tx } from '@instantdb/react';
 
 interface SettingsPageProps {
   db: InstantReactWeb<DBSchema>;
@@ -15,7 +14,11 @@ interface SettingsPageProps {
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
-  const { userSettings, updateUserSettings } = useUserSettings(db);
+  const { isLoading, error, data } = db.useQuery({ userSettings: {$: {where: {id: user.id}}}});
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const userSettings = data.userSettings.length > 0 ? data.userSettings[0] : DEFAULT_USER_SETTINGS;
   const [localSettings, setLocalSettings] = useState(userSettings);
 
   useEffect(() => {
@@ -31,22 +34,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
   console.log('SettingsPage: Current localSettings:', localSettings);
   console.log('SettingsPage: Available LLM models:', llmModels);
 
-  useEffect(() => {
-    // Update local settings when pluginState changes
-    setLocalSettings({
-      selectedModel: userSettings.selectedModel || '',
-      email: userSettings.email || '',
-      apiKey: userSettings.apiKey || '',
-      paragraphLimit: userSettings.paragraphLimit || 1,
-      pluginActive: userSettings.pluginActive || false,
-      promptSelected: userSettings.promptSelected || '',
-      hoverToReveal: userSettings.hoverToReveal ?? true, // Add this line
-    });
-  }, [userSettings]);
-
   const handleSaveSettings = () => {
     console.log('Saving settings:', localSettings);
-    updateUserSettings(localSettings, user);
+    db.transact(tx.userSettings[user.id].update(localSettings));
     console.log('Settings saved', { ...localSettings, apiKey: '******' });
   };
 
