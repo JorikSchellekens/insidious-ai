@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Login } from './Login';
-import ModelAndApiKeyForm from './ModelAndApiKeyForm';
-import { InstantReactWeb, User, tx } from '@instantdb/react';
+import { InstantReactWeb } from '@instantdb/react';
 import { DBSchema } from '@/types';
-import { DEFAULT_USER_SETTINGS } from '@/constants';
-import { useLocalStorage } from '@uidotdev/usehooks';
 
 interface FirstTimeFlowProps {
   db: InstantReactWeb<DBSchema>;

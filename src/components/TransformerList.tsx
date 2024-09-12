@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { InstantReactWeb, tx, User } from "@instantdb/react";
 import { DBSchema } from "../types";
+import { format } from 'date-fns'; // Add this import for date formatting
 
 interface TransformerListProps {
   db: InstantReactWeb<DBSchema>;
@@ -113,9 +114,15 @@ export function TransformerList({ db, user }: TransformerListProps) {
             className={`p-2 rounded-r-md hover:bg-accent group border-l-4 relative ${
               userSettings.transformerSelected === transformer.id ? 'border-primary bg-accent' : 'border-transparent'
             }`}
-            onClick={() => {console.log("fuck me");handleSelect(transformer.id)}}
+            onClick={() => handleSelect(transformer.id)}
           >
-              <span className="text-sm font-medium truncate block">{transformer.title}</span>
+            <span className="text-sm font-medium truncate block">{transformer.title}</span>
+            <span className="text-xs text-gray-500 block">
+              User ID: {transformer.authorId.slice(0, 8)}...{transformer.authorId.slice(-8)}
+            </span>
+            <span className="text-xs text-gray-500 block">
+              {format(transformer.updatedAt, 'MMM d, yyyy')}
+            </span>
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 onClick={(e) => {
