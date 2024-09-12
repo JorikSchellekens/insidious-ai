@@ -46,7 +46,7 @@ export const getParagraphLimit = (): Promise<number> => {
 
 // Add this new function to listen for prompt changes
 export const listenForPromptChanges = (callback: () => void) => {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.type === "promptChanged") {
       callback();
     }

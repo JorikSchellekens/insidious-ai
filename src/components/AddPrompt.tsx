@@ -2,17 +2,23 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { usePromptContext } from '../contexts/PromptContext';
+import { useTransformers } from '../hooks/useTransformers';
+import { InstantReactWeb, User } from '@instantdb/react';
+import { DBSchema } from '../types';
 
-export function AddPrompt() {
+export function AddPrompt(user: User, db: InstantReactWeb<DBSchema>) {
   const [title, setTitle] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const { addPrompt } = usePromptContext();
+  const [content, setContent] = useState("");
+  const { addTransformer } = useTransformers(db);
 
   const handleAddPrompt = () => {
-    addPrompt({ title, prompt });
+    addTransformer({
+        title,
+        content,
+        authorId: user.id,
+    });
     setTitle("");
-    setPrompt("");
+    setContent("");
   };
 
   return (
@@ -24,8 +30,8 @@ export function AddPrompt() {
         placeholder="Title"
       />
       <Textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
         placeholder="Enter your prompt here"
       />
       <Button onClick={handleAddPrompt}>Add Prompt</Button>

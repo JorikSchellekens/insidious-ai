@@ -21,15 +21,6 @@ initialiseDB(self.indexedDB, (database: IDBDatabase | null) => {
 
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
-interface PluginState {
-  apiKey: string;
-  promptSelected: string;
-  pluginActive: boolean;
-  selectedModel: string;
-  paragraphLimit: number;
-  hoverToReveal: boolean; // Add this line
-}
-
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
   if (!db) {
     console.error("Database not initialized");

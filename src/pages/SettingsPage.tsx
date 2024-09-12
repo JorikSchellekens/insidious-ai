@@ -4,21 +4,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AI_PROVIDERS } from '../constants';
-import { usePluginState } from '../hooks/usePluginState';
+import { useUserSettings } from '../hooks/useUserSettings';
 import { Switch } from "@/components/ui/switch";
+import { DBSchema } from '@/types';
+import { InstantReactWeb, User } from '@instantdb/react';
 
 interface SettingsPageProps {
-  db: IDBDatabase | null;
+  db: InstantReactWeb<DBSchema>;
+  user: User;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
-  const { pluginState, updatePluginState } = usePluginState(db);
-  const [localSettings, setLocalSettings] = useState(pluginState);
+const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
+  const { userSettings, updateUserSettings } = useUserSettings(db);
+  const [localSettings, setLocalSettings] = useState(userSettings);
 
   useEffect(() => {
-    console.log('SettingsPage: pluginState updated:', pluginState);
-    setLocalSettings(pluginState);
-  }, [pluginState]);
+    console.log('SettingsPage: userSettings updated:', userSettings);
+    setLocalSettings(userSettings);
+  }, [userSettings]);
 
   const llmModels = AI_PROVIDERS ? Object.keys(AI_PROVIDERS).map(model => ({
     value: model,
@@ -31,19 +34,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db }) => {
   useEffect(() => {
     // Update local settings when pluginState changes
     setLocalSettings({
-      selectedModel: pluginState.selectedModel || '',
-      apiKey: pluginState.apiKey || '',
-      paragraphLimit: pluginState.paragraphLimit || 1,
-      pluginActive: pluginState.pluginActive || false,
-      promptSelected: pluginState.promptSelected || '',
-      id: pluginState.id || '',
-      hoverToReveal: pluginState.hoverToReveal ?? true, // Add this line
+      selectedModel: userSettings.selectedModel || '',
+      email: userSettings.email || '',
+      apiKey: userSettings.apiKey || '',
+      paragraphLimit: userSettings.paragraphLimit || 1,
+      pluginActive: userSettings.pluginActive || false,
+      promptSelected: userSettings.promptSelected || '',
+      hoverToReveal: userSettings.hoverToReveal ?? true, // Add this line
     });
-  }, [pluginState]);
+  }, [userSettings]);
 
   const handleSaveSettings = () => {
     console.log('Saving settings:', localSettings);
-    updatePluginState(localSettings);
+    updateUserSettings(localSettings, user);
     console.log('Settings saved', { ...localSettings, apiKey: '******' });
   };
 

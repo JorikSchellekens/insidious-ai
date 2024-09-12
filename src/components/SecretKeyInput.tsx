@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PluginState } from '../types';
+import { UserSettings } from '../types';
 
 interface SecretKeyInputProps {
   db: IDBDatabase;
-  pluginState: PluginState;
-  updatePluginState: (newState: Partial<PluginState>) => void;
+  userSettings: UserSettings;
+  updateUserSettings: (newState: Partial<UserSettings>) => void;
 }
 
-export function SecretKeyInput({ pluginState, updatePluginState }: SecretKeyInputProps) {
+export function SecretKeyInput({ userSettings, updateUserSettings }: SecretKeyInputProps) {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -24,13 +24,13 @@ export function SecretKeyInput({ pluginState, updatePluginState }: SecretKeyInpu
   };
 
   const handleValidate = () => {
-    if (validateApiKey(pluginState.apiKey, pluginState.selectedModel)) {
-      updatePluginState({ apiKey: pluginState.apiKey });
+    if (validateApiKey(userSettings.apiKey, userSettings.selectedModel)) {
+      updateUserSettings({ apiKey: userSettings.apiKey });
       setHasError(false);
       setErrorMessage("");
     } else {
       setHasError(true);
-      setErrorMessage(`Invalid API key format for ${pluginState.selectedModel}`);
+      setErrorMessage(`Invalid API key format for ${userSettings.selectedModel}`);
     }
   };
 
@@ -40,9 +40,9 @@ export function SecretKeyInput({ pluginState, updatePluginState }: SecretKeyInpu
       <Input
         id="api-key"
         className={hasError ? "border-red-500" : ""}
-        placeholder={pluginState.apiKey || "Enter your API key"}
+        placeholder={userSettings.apiKey || "Enter your API key"}
         onChange={(e) => {
-          updatePluginState({ apiKey: e.currentTarget.value });
+          updateUserSettings({ apiKey: e.currentTarget.value });
           setHasError(false);
           setErrorMessage("");
         }}

@@ -1,41 +1,41 @@
-import { useEffect } from 'react';
 import { PromptList } from '../components/PromptList';
-import { PromptProvider } from '../contexts/PromptContext';
-import { usePluginState } from '../hooks/usePluginState';
+import { TransformerProvider } from '../contexts/TransfomerContext';
 import { DisabledBanner } from '../components/DisabledBanner';
+import { InstantReactWeb, User, tx } from '@instantdb/react';
+import { DBSchema } from '@/types';
 
 interface HomeProps {
-  db: IDBDatabase;
+  db: InstantReactWeb<DBSchema, {}, false>;
+  user: User;
 }
 
-export function Home({ db }: HomeProps) {
-  const { pluginState, updatePluginState } = usePluginState(db);
-
-  useEffect(() => {
-    console.log('Home component mounted, current pluginState:', pluginState);
-    // We don't need to fetch the state here anymore, as it's handled in usePluginState
-  }, []);
+export function Home({ db, user }: HomeProps) {
+  const { data: userData } = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
+  const userSettings = userData?.userSettings[0];
 
   const handleEnable = () => {
-    console.log('handleEnable called, current pluginActive:', pluginState.pluginActive);
-    updatePluginState({ pluginActive: true });
+    db.transact([
+      tx.users[user.id].merge({ pluginActive: true })
+    ]);
   };
 
-  console.log('Home component rendering, pluginState:', pluginState);
-
   return (
-    <PromptProvider db={db}>
+    <TransformerProvider db={db}>
       <div className="flex flex-col h-full overflow-hidden">
-        <DisabledBanner onEnable={handleEnable} isDisabled={!pluginState.pluginActive} />
+        <DisabledBanner onEnable={handleEnable} isDisabled={!userSettings.pluginActive} />
         <h1 className="text-3xl font-bold text-center font-sans p-4">InsidiousAI</h1>
         
         <div className="flex-1 overflow-y-auto p-4">
           <PromptList
-            pluginState={pluginState}
-            updatePluginState={updatePluginState}
+            userSettings={userSettings}
+            db={db}
+            user={user}
           />
         </div>
       </div>
-    </PromptProvider>
+    </TransformerProvider>
   );
 }

@@ -3,39 +3,44 @@ import { PlusCircle, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PluginState } from '../types';
-import { usePromptContext } from '../contexts/PromptContext';
+import { init, InstantReactWeb, tx, User } from "@instantdb/react";
+import { DBSchema, UserSettings } from "../types";
 
 interface PromptListProps {
-  pluginState: PluginState;
-  updatePluginState: (newState: Partial<PluginState>) => void;
+  userSettings: UserSettings;
+  db: InstantReactWeb<DBSchema>;
+  user: User;
 }
 
-export function PromptList({ pluginState, updatePluginState }: PromptListProps) {
-  const { prompts, deletePrompt, updatePrompt, createPrompt } = usePromptContext();
-  const [editingPrompt, setEditingPrompt] = useState<{ id?: string; title: string; prompt: string } | null>(null);
+export function PromptList({ userSettings, db, user }: PromptListProps) {
+  const { data } = db.useQuery({ transformers: {} });
+  const [editingPrompt, setEditingPrompt] = useState<{ id: string; title: string; content: string } | null>(null);
   const [newPromptTitle, setNewPromptTitle] = useState("");
   const [newPromptContent, setNewPromptContent] = useState("");
 
   const handleSelect = (id: string) => {
-    updatePluginState({ promptSelected: id });
+    db.transact([
+      tx.users[user.id].update({ promptSelected: id })
+    ]);
   };
 
-  const handleEdit = (prompt: { id: string; title: string; prompt: string }) => {
+  const handleEdit = (prompt: { id: string; title: string; content: string }) => {
     setEditingPrompt(prompt);
     setNewPromptTitle(prompt.title);
-    setNewPromptContent(prompt.prompt);
+    setNewPromptContent(prompt.content);
   };
 
   const handleSaveEdit = () => {
     if (editingPrompt) {
-      if (editingPrompt.id) {
-        // Update existing prompt
-        updatePrompt(editingPrompt.id, { title: newPromptTitle, prompt: newPromptContent });
-      } else {
-        // Create new prompt
-        createPrompt({ title: newPromptTitle, prompt: newPromptContent });
-      }
+      db.transact([
+        tx.transformers[editingPrompt.id].update({
+          id: editingPrompt.id,
+          title: newPromptTitle,
+          content: newPromptContent,
+          updatedAt: Date.now(),
+          authorId: user.id
+        })
+      ]);
       setEditingPrompt(null);
       setNewPromptTitle("");
       setNewPromptContent("");
@@ -43,14 +48,14 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
   };
 
   const handleDelete = (id: string) => {
-    deletePrompt(id);
-    if (pluginState.promptSelected === id) {
-      updatePluginState({ promptSelected: undefined });
+    db.transact([tx.transformers[id].delete()]);
+    if (userSettings.promptSelected === id) {
+      db.transact([tx.users[user.id].update({ promptSelected: undefined })]);
     }
   };
 
   const handleCreateNew = () => {
-    setEditingPrompt({ title: "", prompt: "" });
+    setEditingPrompt({ id: crypto.randomUUID(), title: "", content: "" });
     setNewPromptTitle("");
     setNewPromptContent("");
   };
@@ -92,11 +97,11 @@ export function PromptList({ pluginState, updatePluginState }: PromptListProps) 
     <div className="w-full max-w-md mx-auto p-4 bg-background shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Content Transformers</h2>
       <ul className="space-y-2">
-        {prompts.map(prompt => (
+        {data?.transformers.map(prompt => (
           <li
             key={prompt.id}
             className={`p-2 rounded-r-md hover:bg-accent group border-l-4 relative ${
-              pluginState.promptSelected === prompt.id ? 'border-primary bg-accent' : 'border-transparent'
+              userSettings.promptSelected === prompt.id ? 'border-primary bg-accent' : 'border-transparent'
             }`}
             onClick={() => handleSelect(prompt.id)}
           >

@@ -1,71 +1,92 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AI_PROVIDERS } from '../constants';
-
-const fadeVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
+import { Login } from './Login';
+import ModelAndApiKeyForm from './ModelAndApiKeyForm';
+import { InstantReactWeb, User } from '@instantdb/react';
+import { DBSchema } from '@/types';
+import { useUserSettings } from '../hooks/useUserSettings';
 
 interface FirstTimeFlowProps {
-  onComplete: (model: string, apiKey: string) => void;
+  onComplete: (model: string, apiKey: string, user: User) => void;
+  db: InstantReactWeb<DBSchema>;
 }
 
-const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete }) => {
+const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete, db }) => {
   const [step, setStep] = useState(0);
   const [model, setModel] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [error, setError] = useState('');
+  const [user, setUser] = useState<User | null>(null);
 
-  const skipIntro = useCallback(() => {
-    setStep(2);
-  }, []);
+  const { userSettings, updateUserSettings } = useUserSettings(db);
 
   useEffect(() => {
-    if (step < 2) {
-      const timer = setTimeout(() => setStep(prev => prev + 1), 2000);
-      
-      const handleSkip = () => {
-        clearTimeout(timer);
-        skipIntro();
-      };
-
-      window.addEventListener('click', handleSkip);
-      window.addEventListener('keydown', handleSkip);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('click', handleSkip);
-        window.removeEventListener('keydown', handleSkip);
-      };
+    const storedEmail = localStorage.getItem('sentEmail');
+    if (storedEmail) {
+      setStep(2); // Skip to login step if we have a stored email
+    } else {
+      const timer = setTimeout(() => {
+        if (step < 2) {
+          setStep(prevStep => prevStep + 1);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [step, skipIntro]);
+  }, [step]);
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (step < 2) {
+        setStep(2);
+      }
+    };
+
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('keydown', handleInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, [step]);
+
+  const handleLogin = async (loggedInUser: User) => {
+    setUser(loggedInUser);
+    const { data } = await db.useQuery({ userSettings: { $: { where: { id: loggedInUser.id } } } });
+    
+    if (data && data.userSettings.length > 0) {
+      // User exists, load settings and complete flow
+      const settings = data.userSettings[0];
+      onComplete(settings.selectedModel, settings.apiKey, loggedInUser);
+    } else {
+      // New user, continue to model selection
+      setStep(4);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!model) {
-      setError('Please select a model');
+    if (!model || !apiKey) {
+      setError('Please fill in all fields');
       return;
     }
-    if (!apiKey) {
-      setError('Please enter an API key');
-      return;
+    if (user) {
+      updateUserSettings({ selectedModel: model, apiKey }, user);
+      onComplete(model, apiKey, user);
+    } else {
+      setError('Please log in first');
     }
-    onComplete(model, apiKey);
   };
 
-  const llmModels = AI_PROVIDERS ? Object.keys(AI_PROVIDERS).map(model => ({
-    value: model,
-    label: model
-  })) : [];
+  const fadeVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
 
   return (
     <div className="flex items-center justify-center bg-white min-h-[400px] min-w-[300px] p-4">
       <AnimatePresence mode="wait">
-        {step === 0 && (
+        {step === 0 && !localStorage.getItem('sentEmail') && (
           <motion.h1
             key="title"
             initial="hidden"
@@ -77,7 +98,7 @@ const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete }) => {
             Insidious AI
           </motion.h1>
         )}
-        {step === 1 && (
+        {step === 1 && !localStorage.getItem('sentEmail') && (
           <motion.h2
             key="subtitle"
             initial="hidden"
@@ -89,42 +110,26 @@ const FirstTimeFlow: React.FC<FirstTimeFlowProps> = ({ onComplete }) => {
             Control your reality
           </motion.h2>
         )}
-        {step === 2 && (
-          <motion.form
-            key="form"
+        {step >= 2 && (
+          <motion.div
+            key="login"
             initial="hidden"
             animate="visible"
             exit="hidden"
             variants={fadeVariants}
-            onSubmit={handleSubmit}
-            className="space-y-4 w-full max-w-[280px]"
           >
-            <Select
-              value={model}
-              onValueChange={setModel}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select LLM model" />
-              </SelectTrigger>
-              <SelectContent>
-                {llmModels.map((model) => (
-                  <SelectItem key={model.value} value={model.value}>
-                    {model.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="password"
-              placeholder="Enter API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full">
-              Configure
-            </Button>
-          </motion.form>
+            <Login db={db} onLogin={handleLogin} />
+          </motion.div>
+        )}
+        {step === 4 && (
+          <ModelAndApiKeyForm
+            model={model}
+            setModel={setModel}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+            error={error}
+            onSubmit={handleSubmit}
+          />
         )}
       </AnimatePresence>
     </div>
