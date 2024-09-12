@@ -1,4 +1,4 @@
-import { PromptList } from '../components/PromptList';
+import { TransformerList } from '../components/TransformerList';
 import { TransformerProvider } from '../contexts/TransfomerContext';
 import { DisabledBanner } from '../components/DisabledBanner';
 import { InstantReactWeb, User, tx } from '@instantdb/react';
@@ -39,8 +39,7 @@ export function Home({ db, user }: HomeProps) {
         <h1 className="text-3xl font-bold text-center font-sans p-4">InsidiousAI</h1>
         
         <div className="flex-1 overflow-y-auto p-4">
-          <PromptList
-            userSettings={userSettings}
+          <TransformerList
             db={db}
             user={user}
           />

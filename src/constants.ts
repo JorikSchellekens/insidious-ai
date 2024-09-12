@@ -6,7 +6,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   apiKey: '',
   paragraphLimit: 1,
   pluginActive: true,
-  promptSelected: "",
+  transformerSelected: "",
   email: "",
   hoverToReveal: false,
 };
