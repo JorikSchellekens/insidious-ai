@@ -28,7 +28,7 @@ export function Home({ db, user }: HomeProps) {
 
   const handleEnable = () => {
     db.transact([
-      tx.users[user.id].merge({ pluginActive: true })
+      tx.userSettings[user.id].merge({ pluginActive: true })
     ]);
   };
 

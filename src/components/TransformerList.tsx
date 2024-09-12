@@ -60,7 +60,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
   const handleDelete = (id: string) => {
     db.transact([tx.transformers[id].delete()]);
     if (userSettings.transformerSelected === id) {
-      db.transact([tx.users[user.id].update({ transformerSelected: undefined })]);
+      db.transact([tx.userSettings[user.id].merge({ transformerSelected: undefined })]);
     }
   };
 
@@ -115,7 +115,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
             }`}
             onClick={() => {console.log("fuck me");handleSelect(transformer.id)}}
           >
-              <span className="text-sm font-medium truncate block">{"what the fuck"  + transformer.title}</span>
+              <span className="text-sm font-medium truncate block">{transformer.title}</span>
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 onClick={(e) => {
