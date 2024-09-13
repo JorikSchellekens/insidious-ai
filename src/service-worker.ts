@@ -8,7 +8,6 @@ const db = init<DBSchema>({ appId: APP_ID });
 
 let currentUser: User | undefined;
 let userSettings: UserSettings | null = null;
-let currentTransformer: Transformer | null = null;
 
 db.subscribeAuth((auth) => {
   console.log("Auth state:", auth);
@@ -28,29 +27,9 @@ db.subscribeAuth((auth) => {
     if (resp.data && resp.data.userSettings.length > 0) {
       userSettings = resp.data.userSettings[0];
       console.log("User settings updated:", userSettings);
-      
-      // Subscribe to the selected prompt when userSettings are updated
-      subscribeToSelectedTransformer(userSettings.transformerSelected);
     }
-    }
-  );
+  });
 });
-
-function subscribeToSelectedTransformer(transformerId: string) {
-  db.subscribeQuery(
-    {transformers: {$: {where: {id: transformerId}}}},
-    (resp) => {
-      if (resp.error) {
-        console.error("Error fetching transformer:", resp.error);
-      }
-
-      if (resp.data && resp.data.transformers.length > 0) {
-        currentTransformer = resp.data.transformers[0];
-        console.log("Current transformer updated:", currentTransformer);
-      }
-    }
-  );
-}
 
 function formatSystemPrompt(prompt: string) {
   const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Preserve any non-textual styling or formatting present in the original text. If the original text contains HTML elements or other markup, maintain a similar structure in your response. Do not add any prefixes, suffixes, or additional formatting unless explicitly asked.";
@@ -63,8 +42,8 @@ function formatSystemPrompt(prompt: string) {
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
-  console.log("insidiate", {currentUser, userSettings, currentTransformer});
-  if (!currentUser || !userSettings || !currentTransformer) {
+  console.log("insidiate", {currentUser, userSettings});
+  if (!currentUser || !userSettings) {
     console.log("User not logged in, settings not loaded, or transformer not selected");
     sendResponse('Please log in, configure your settings, and select a transformer.');
     return;
@@ -77,9 +56,8 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
   }
 
   const { apiKey, selectedModel } = userSettings;
-  const { content } = currentTransformer;
 
-  console.log("Selected transformer:", content);
+  console.log("Selected transformer:", userSettings.transformerSelected);
 
   const provider = AI_PROVIDERS[selectedModel as AIProviderKey];
   if (!provider) {
@@ -95,7 +73,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       headers: provider.headers(apiKey),
       body: JSON.stringify(
         provider.bodyFormatter([
-          formatSystemPrompt(content),
+          formatSystemPrompt(userSettings.transformerSelected),
           {
             "role": "user",
             "content": text
