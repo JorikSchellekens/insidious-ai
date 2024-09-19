@@ -1,6 +1,6 @@
 import { AI_PROVIDERS, DEFAULT_USER_SETTINGS } from "./constants";
 import { init, tx, User } from '@instantdb/core';
-import { DBSchema, UserSettings } from "./types";
+import { DBSchema, Transformer,UserSettings } from "./types";
 
 // ID for app: InsidiousAI
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
@@ -8,7 +8,7 @@ const db = init<DBSchema>({ appId: APP_ID });
 
 let currentUser: User | undefined;
 let userSettings: UserSettings | null = null;
-
+let transformers: Transformer[] | null = null;
 db.subscribeAuth((auth) => {
   console.log("Auth state:", auth);
   currentUser = auth.user;
@@ -26,23 +26,35 @@ db.subscribeAuth((auth) => {
 
     if (resp.data && resp.data.userSettings.length > 0) {
       userSettings = resp.data.userSettings[0];
-      console.log("User settings updated:", userSettings);
     }
   });
 });
 
-function formatSystemPrompt(prompt: string) {
+db.subscribeQuery(
+  {transformers: {}},
+  (resp) => {
+    if (resp.error) {
+      console.error("Error fetching transformers:", resp.error);
+    }
+    if (resp.data) {
+      console.log("transformers", resp.data.transformers)
+      transformers = resp.data.transformers;
+    }
+  }
+)
+
+function formatSystemPrompt(trasnformerId: string) {
   const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Preserve any non-textual styling or formatting present in the original text. If the original text contains HTML elements or other markup, maintain a similar structure in your response. Do not add any prefixes, suffixes, or additional formatting unless explicitly asked.";
   return {
     "role": "system",
-    "content": `${prefix}\n\n${prompt}`
+    "content": `${prefix}\n\n${transformers?.find(t => t.id === trasnformerId)?.content}`
   }
 }
 
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
-  console.log("insidiate", {currentUser, userSettings});
+  console.log(text)
   if (!currentUser || !userSettings) {
     console.log("User not logged in, settings not loaded, or transformer not selected");
     sendResponse('Please log in, configure your settings, and select a transformer.');
@@ -51,7 +63,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
 
   if (!userSettings.pluginActive) {
     console.log("Insidious disabled");
-    sendResponse('Insidious is currently disabled.');
+    sendResponse(text);
     return;
   }
 
@@ -65,6 +77,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
     sendResponse(`Unsupported model: ${selectedModel}`);
     return;
   }
+  console.log("formated", formatSystemPrompt(userSettings.transformerSelected))
 
   fetch(
     provider.url,
@@ -83,14 +96,12 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
     }
   ).then(async (response: Response) => {
     const body = await response.json();
-    console.log(body);
     let content;
     if (selectedModel.startsWith('claude')) {
       content = body.content[0].text;
     } else {
       content = body.choices[0].message.content;
     }
-    console.log(content);
     sendResponse(content);
   }).catch(error => {
     console.error('Error:', error);
