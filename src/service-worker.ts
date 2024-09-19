@@ -1,6 +1,6 @@
 import { AI_PROVIDERS, DEFAULT_USER_SETTINGS } from "./constants";
 import { init, tx, User } from '@instantdb/core';
-import { DBSchema, Transformer, UserSettings } from "./types";
+import { DBSchema, UserSettings } from "./types";
 
 // ID for app: InsidiousAI
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
@@ -98,8 +98,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
   });
 }
 
-// @ts-ignore
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   console.log(request.type)
   if (request.type == "insidiate") {
     insidiate(request.text, sendResponse);

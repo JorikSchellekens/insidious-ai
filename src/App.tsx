@@ -1,9 +1,8 @@
-import { init, User, tx, id } from '@instantdb/react';
+import { init, User } from '@instantdb/react';
 import { Home } from './pages/Home';
 import SettingsPageWrapper from './components/SettingsPageWrapper';
 import SettingsPage from './pages/SettingsPage';
 import FirstTimeFlow from './components/FirstTimeFlow';
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { DBSchema } from './types';
 
 // ID for app: insidiousai
