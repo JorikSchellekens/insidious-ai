@@ -94,7 +94,7 @@ function MagicCode({ sentEmail, db, onBack }: MagicCodeProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     db.auth.signInWithMagicCode({ email: sentEmail, code })
-      .then((user) => {
+      .then(() => {
         localStorage.removeItem('sentEmail');
       })
       .catch((err) => {
