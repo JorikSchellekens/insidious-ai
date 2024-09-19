@@ -1,34 +1,26 @@
 export default {
-  "users": {
+  "userSettings": {
+    "bind": [
+      "isOwner",
+      "auth.id == data.id"
+    ],
     "allow": {
-      "view": "true",
+      "view": "isOwner",
       "create": "true",
-      "update": "auth.id == data.id",
-      "delete": "false"
+      "delete": "isOwner",
+      "update": "isOwner"
     }
   },
   "transformers": {
+    "bind": [
+      "isOwner",
+      "auth.id == data.authorId"
+    ],
     "allow": {
       "view": "true",
-      "create": "auth.id != null",
-      "update": "auth.id == data.authorId",
-      "delete": "auth.id == data.authorId"
-    }
-  },
-  "likes": {
-    "allow": {
-      "view": "true",
-      "create": "auth.id != null",
-      "update": "false",
-      "delete": "auth.id == data.userId"
-    }
-  },
-  "bookmarks": {
-    "allow": {
-      "view": "auth.id == data.userId",
-      "create": "auth.id != null",
-      "update": "false",
-      "delete": "auth.id == data.userId"
+      "create": "true",
+      "delete": "false",
+      "update": "isOwner"
     }
   }
 }
