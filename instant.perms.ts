@@ -22,5 +22,17 @@ export default {
       "delete": "false",
       "update": "isOwner"
     }
+  },
+  "likes": {
+    "bind": [
+      "isOwner",
+      "auth.id == data.userId"
+    ],
+    "allow": {
+      "view": "true",
+      "create": "true",
+      "delete": "isOwner",
+      "update": "false"
+    }
   }
 }

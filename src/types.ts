@@ -15,7 +15,8 @@ export type Transformer = {
     createdAt: number;
     updatedAt: number;
     authorId: string;
-  }
+    // likesCount: number; // Remove this line
+};
 
 export type DBSchema = {
   userSettings: UserSettings;

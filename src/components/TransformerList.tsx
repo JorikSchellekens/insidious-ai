@@ -1,11 +1,18 @@
-import { useState } from "react";
-import { PlusCircle, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { useState, useMemo } from "react";
+import { PlusCircle, Edit2, Trash2, ArrowLeft, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { InstantReactWeb, tx, User } from "@instantdb/react";
 import { DBSchema } from "../types";
-import { format } from 'date-fns'; // Add this import for date formatting
+import { format } from 'date-fns';
 
 interface TransformerListProps {
   db: InstantReactWeb<DBSchema>;
@@ -13,11 +20,15 @@ interface TransformerListProps {
 }
 
 export function TransformerList({ db, user }: TransformerListProps) {
-  const { data } = db.useQuery({ transformers: {} });
+  const { data } = db.useQuery({
+    transformers: {},
+    likes: {}
+  });
   const { data: userSettingsData } = db.useQuery({ userSettings: {$: {where: {id: user.id}}} });
   const [editingTransformer, setEditingTransformer] = useState<{ id: string; title: string; content: string } | null>(null);
   const [newTransformerTitle, setNewTransformerTitle] = useState("");
   const [newTransformerContent, setNewTransformerContent] = useState("");
+  const [sortOption, setSortOption] = useState<'creationDate' | 'topLikes' | 'userLikes'>('creationDate');
 
   if (!userSettingsData) {
     return <div>Loading...</div>;
@@ -102,11 +113,79 @@ export function TransformerList({ db, user }: TransformerListProps) {
     );
   }
 
+  const userLikes = useMemo(() => {
+    const likesMap = new Set<string>();
+    data?.likes
+      .filter(like => like.userId === user.id)
+      .forEach(like => likesMap.add(like.transformerId));
+    return likesMap;
+  }, [data?.likes, user.id]);
+
+  const likesCountMap = useMemo(() => {
+    const countMap: { [key: string]: number } = {};
+    data?.likes.forEach((like) => {
+      countMap[like.transformerId] = (countMap[like.transformerId] || 0) + 1;
+    });
+    return countMap;
+  }, [data?.likes]);
+
+  const handleLike = (transformerId: string) => {
+    const likeId = crypto.randomUUID();
+    db.transact([
+      tx.likes[likeId].update({
+        id: likeId,
+        userId: user.id,
+        transformerId: transformerId,
+        createdAt: Date.now(),
+      }),
+    ]);
+  };
+
+  const handleUnlike = (transformerId: string) => {
+    const userLike = data?.likes.find(like => like.transformerId === transformerId && like.userId === user.id);
+    if (userLike) {
+      db.transact([
+        tx.likes[userLike.id].delete(),
+      ]);
+    }
+  };
+
+  const sortedTransformers = useMemo(() => {
+    let transformersArray = [...(data?.transformers || [])];
+
+    if (sortOption === 'creationDate') {
+      transformersArray.sort((a, b) => b.createdAt - a.createdAt);
+    } else if (sortOption === 'topLikes') {
+      transformersArray.sort(
+        (a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0)
+      );
+    } else if (sortOption === 'userLikes') {
+      transformersArray = transformersArray.filter(t => userLikes.has(t.id));
+    }
+
+    return transformersArray;
+  }, [data?.transformers, sortOption, userLikes, likesCountMap]);
+
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-background shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Content Transformers</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Content Transformers</h2>
+        <Select
+          value={sortOption}
+          onValueChange={(value) => setSortOption(value as 'creationDate' | 'topLikes' | 'userLikes')}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="creationDate">Newest</SelectItem>
+            <SelectItem value="topLikes">Top Likes</SelectItem>
+            <SelectItem value="userLikes">My Likes</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <ul className="space-y-2">
-        {data?.transformers.map(transformer => (
+        {sortedTransformers.map(transformer => (
           <li
             key={transformer.id}
             className={`p-2 rounded-r-md hover:bg-accent group border-l-4 relative ${
@@ -121,6 +200,29 @@ export function TransformerList({ db, user }: TransformerListProps) {
             <span className="text-xs text-gray-500 block">
               {format(transformer.updatedAt, 'MMM d, yyyy')}
             </span>
+            <div className="flex items-center mt-2">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (userLikes.has(transformer.id)) {
+                    handleUnlike(transformer.id);
+                  } else {
+                    handleLike(transformer.id);
+                  }
+                }}
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+              >
+                <Heart
+                  className={`h-5 w-5 ${userLikes.has(transformer.id) ? 'text-red-600' : 'text-gray-400'}`}
+                  fill={userLikes.has(transformer.id) ? 'currentColor' : 'none'}
+                />
+              </Button>
+              <span className="ml-2 text-sm">
+                {data?.likes.filter(like => like.transformerId === transformer.id).length || 0} likes
+              </span>
+            </div>
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 onClick={(e) => {
