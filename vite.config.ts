@@ -6,9 +6,6 @@ import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
 import path from 'path'
 
-// Optional: Log the manifest to check if it's imported correctly
-console.log('Manifest Version:', manifest.manifest_version)
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), crx({ manifest })], // Pass the manifest object

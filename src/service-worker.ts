@@ -10,7 +10,6 @@ let currentUser: User | undefined;
 let userSettings: UserSettings | null = null;
 let transformers: Transformer[] | null = null;
 db.subscribeAuth((auth) => {
-  console.log("Auth state:", auth);
   currentUser = auth.user;
 
   if (!currentUser) {
@@ -37,7 +36,6 @@ db.subscribeQuery(
       console.error("Error fetching transformers:", resp.error);
     }
     if (resp.data) {
-      console.log("transformers", resp.data.transformers)
       transformers = resp.data.transformers;
     }
   }
@@ -54,10 +52,9 @@ function formatSystemPrompt(trasnformerId: string) {
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
 const insidiate = async (text: string, sendResponse: (response: string) => void) => {
-  console.log(text)
   if (!currentUser || !userSettings) {
     console.log("User not logged in, settings not loaded, or transformer not selected");
-    sendResponse('Please log in, configure your settings, and select a transformer.');
+    sendResponse('text');
     return;
   }
 
@@ -69,15 +66,12 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
 
   const { apiKey, selectedModel } = userSettings;
 
-  console.log("Selected transformer:", userSettings.transformerSelected);
-
   const provider = AI_PROVIDERS[selectedModel as AIProviderKey];
   if (!provider) {
     console.error(`Unsupported model: ${selectedModel}`);
     sendResponse(`Unsupported model: ${selectedModel}`);
     return;
   }
-  console.log("formated", formatSystemPrompt(userSettings.transformerSelected))
 
   fetch(
     provider.url,
@@ -110,7 +104,6 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
 }
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-  console.log(request.type)
   if (request.type == "insidiate") {
     insidiate(request.text, sendResponse);
   } else if (request.type == "paragraphLimit") {
