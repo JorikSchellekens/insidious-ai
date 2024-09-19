@@ -26,10 +26,8 @@ export function TransformerList({ db, user }: TransformerListProps) {
     return <div>No user settings found</div>;
   }
   const userSettings = userSettingsData.userSettings[0];
-  console.log("userSettings help me god this baby is loud", userSettings);
 
   const handleSelect = (id: string) => {
-    console.log("Selecting transformer:", id);
     db.transact([
       tx.userSettings[user.id].merge({ transformerSelected: id })
     ]);

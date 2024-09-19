@@ -24,7 +24,6 @@ export function Home({ db, user }: HomeProps) {
   }
 
   const userSettings = userData.userSettings[0];
-  console.log('userSettings', userSettings);
 
   const handleEnable = () => {
     db.transact([
