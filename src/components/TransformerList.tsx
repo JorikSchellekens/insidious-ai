@@ -22,14 +22,57 @@ interface TransformerListProps {
 export function TransformerList({ db, user }: TransformerListProps) {
   const { data } = db.useQuery({
     transformers: {},
-    likes: {}
+    likes: {},
   });
-  const { data: userSettingsData } = db.useQuery({ userSettings: {$: {where: {id: user.id}}} });
-  const [editingTransformer, setEditingTransformer] = useState<{ id: string; title: string; content: string } | null>(null);
+  const { data: userSettingsData } = db.useQuery({
+    userSettings: { $: { where: { id: user.id } } },
+  });
+  const [editingTransformer, setEditingTransformer] = useState<{
+    id: string;
+    title: string;
+    content: string;
+  } | null>(null);
   const [newTransformerTitle, setNewTransformerTitle] = useState("");
   const [newTransformerContent, setNewTransformerContent] = useState("");
-  const [sortOption, setSortOption] = useState<'creationDate' | 'topLikes' | 'userLikes'>('creationDate');
+  const [sortOption, setSortOption] = useState<
+    "creationDate" | "topLikes" | "userLikes"
+  >("creationDate");
 
+  // Move all hooks before any conditional returns
+  const userLikes = useMemo(() => {
+    const likesMap = new Set<string>();
+    data?.likes
+      .filter((like) => like.userId === user.id)
+      .forEach((like) => likesMap.add(like.transformerId));
+    return likesMap;
+  }, [data?.likes, user.id]);
+
+  const likesCountMap = useMemo(() => {
+    const countMap: { [key: string]: number } = {};
+    data?.likes.forEach((like) => {
+      countMap[like.transformerId] = (countMap[like.transformerId] || 0) + 1;
+    });
+    return countMap;
+  }, [data?.likes]);
+
+  // Move sortedTransformers useMemo before conditional returns
+  const sortedTransformers = useMemo(() => {
+    let transformersArray = [...(data?.transformers || [])];
+
+    if (sortOption === 'creationDate') {
+      transformersArray.sort((a, b) => b.createdAt - a.createdAt);
+    } else if (sortOption === 'topLikes') {
+      transformersArray.sort(
+        (a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0)
+      );
+    } else if (sortOption === 'userLikes') {
+      transformersArray = transformersArray.filter(t => userLikes.has(t.id));
+    }
+
+    return transformersArray;
+  }, [data?.transformers, sortOption, userLikes, likesCountMap]);
+
+  // Now the conditional returns can be placed
   if (!userSettingsData) {
     return <div>Loading...</div>;
   }
@@ -80,6 +123,27 @@ export function TransformerList({ db, user }: TransformerListProps) {
     setNewTransformerContent("");
   };
 
+  const handleLike = (transformerId: string) => {
+    const likeId = crypto.randomUUID();
+    db.transact([
+      tx.likes[likeId].update({
+        id: likeId,
+        userId: user.id,
+        transformerId: transformerId,
+        createdAt: Date.now(),
+      }),
+    ]);
+  };
+
+  const handleUnlike = (transformerId: string) => {
+    const userLike = data?.likes.find(like => like.transformerId === transformerId && like.userId === user.id);
+    if (userLike) {
+      db.transact([
+        tx.likes[userLike.id].delete(),
+      ]);
+    }
+  };
+
   if (editingTransformer) {
     return (
       <div className="w-full max-w-md mx-auto p-4 bg-background shadow-lg rounded-lg">
@@ -112,59 +176,6 @@ export function TransformerList({ db, user }: TransformerListProps) {
       </div>
     );
   }
-
-  const userLikes = useMemo(() => {
-    const likesMap = new Set<string>();
-    data?.likes
-      .filter(like => like.userId === user.id)
-      .forEach(like => likesMap.add(like.transformerId));
-    return likesMap;
-  }, [data?.likes, user.id]);
-
-  const likesCountMap = useMemo(() => {
-    const countMap: { [key: string]: number } = {};
-    data?.likes.forEach((like) => {
-      countMap[like.transformerId] = (countMap[like.transformerId] || 0) + 1;
-    });
-    return countMap;
-  }, [data?.likes]);
-
-  const handleLike = (transformerId: string) => {
-    const likeId = crypto.randomUUID();
-    db.transact([
-      tx.likes[likeId].update({
-        id: likeId,
-        userId: user.id,
-        transformerId: transformerId,
-        createdAt: Date.now(),
-      }),
-    ]);
-  };
-
-  const handleUnlike = (transformerId: string) => {
-    const userLike = data?.likes.find(like => like.transformerId === transformerId && like.userId === user.id);
-    if (userLike) {
-      db.transact([
-        tx.likes[userLike.id].delete(),
-      ]);
-    }
-  };
-
-  const sortedTransformers = useMemo(() => {
-    let transformersArray = [...(data?.transformers || [])];
-
-    if (sortOption === 'creationDate') {
-      transformersArray.sort((a, b) => b.createdAt - a.createdAt);
-    } else if (sortOption === 'topLikes') {
-      transformersArray.sort(
-        (a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0)
-      );
-    } else if (sortOption === 'userLikes') {
-      transformersArray = transformersArray.filter(t => userLikes.has(t.id));
-    }
-
-    return transformersArray;
-  }, [data?.transformers, sortOption, userLikes, likesCountMap]);
 
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-background shadow-lg rounded-lg">
