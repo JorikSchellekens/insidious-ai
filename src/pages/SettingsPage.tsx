@@ -22,7 +22,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
   const [localSettings, setLocalSettings] = useState(userSettings);
 
   useEffect(() => {
-    console.log('SettingsPage: userSettings updated:', userSettings);
     setLocalSettings(userSettings);
   }, [userSettings]);
 
@@ -31,13 +30,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
     label: model
   })) : [];
 
-  console.log('SettingsPage: Current localSettings:', localSettings);
-  console.log('SettingsPage: Available LLM models:', llmModels);
-
   const handleSaveSettings = () => {
-    console.log('Saving settings:', localSettings);
     db.transact(tx.userSettings[user.id].update(localSettings));
-    console.log('Settings saved', { ...localSettings, apiKey: '******' });
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
@@ -45,12 +39,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
       ...localSettings,
       [field]: value
     };
-    console.log(`SettingsPage: Updating ${field}:`, value);
     setLocalSettings(updatedSettings);
   };
 
   if (!db) {
-    console.log('SettingsPage: Database not initialized');
     return <div>Loading...</div>;
   }
 
