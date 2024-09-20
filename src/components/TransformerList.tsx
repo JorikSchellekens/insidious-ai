@@ -5,6 +5,7 @@ import { InstantReactWeb, User, tx } from "@instantdb/react";
 import { DBSchema } from "../types";
 import { TransformerListItem } from './TransformerListItem';
 import { TransformerForm } from './TransformerForm';
+import { UserSettings } from '../types';
 
 interface TransformerListProps {
   db: InstantReactWeb<DBSchema>;
@@ -27,6 +28,8 @@ export function TransformerList({ db, user }: TransformerListProps) {
     likes: {},
     userSettings: { $: { where: { id: user.id } } },
   });
+
+  const userSettings: UserSettings = data?.userSettings[0] || {};
 
   const userLikes = useMemo(() => {
     const likesMap = new Set<string>();
@@ -146,6 +149,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
           onSubmit={handleSaveEdit}
           onCancel={() => setEditingTransformer(null)}
           submitLabel="Save Changes"
+          userSettings={userSettings}  // Add this line
         />
       </div>
     );
@@ -189,6 +193,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
             onSubmit={handleCreateNew}
             onCancel={() => setIsCreating(false)}
             submitLabel="Create Transformer"
+            userSettings={userSettings}  // Make sure this line is present
           />
         </div>
       ) : (
