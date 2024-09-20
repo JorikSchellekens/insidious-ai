@@ -126,3 +126,30 @@ Apply all these modifications simultaneously while maintaining the essence and s
   const { content } = await callAI(userSettings, systemPrompt, text);
   return content;
 }
+
+export async function remixTransformers(
+  userSettings: UserSettings,
+  transformers: { title: string; content: string }[]
+): Promise<{ title: string; content: string }> {
+  const systemPrompt = `You are an AI assistant that combines multiple text transformation prompts into a single, cohesive prompt. Your task is to create a new transformer that effectively merges the functionality of the given transformers.
+
+Important guidelines:
+1. Analyze the purpose and functionality of each input transformer.
+2. Create a new transformer that combines these functionalities in a logical and efficient manner.
+3. The new transformer should be able to perform all the tasks of the input transformers, but as a single, unified operation.
+4. Generate a concise yet descriptive title for the new transformer that reflects its combined functionality.
+5. The content should be clear, concise, and effectively implement the intention of all input transformers.
+6. Ensure the new transformer is coherent and doesn't contain contradictory instructions.`;
+
+  const userPrompt = `Combine the following transformers into a single, more powerful transformer:
+
+${transformers.map((t, i) => `Transformer ${i + 1}:
+Title: ${t.title}
+Content: ${t.content}`).join('\n\n')}
+
+Respond with a JSON object containing the 'title' and 'content' for the new, combined transformer. The title should be creative and reflect the combined functionality, not just a list of the original titles.`;
+
+  const { content: responseContent } = await callAI(userSettings, systemPrompt, userPrompt);
+  const remixed = JSON.parse(responseContent);
+  return { title: remixed.title, content: remixed.content };
+}

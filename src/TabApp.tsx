@@ -7,6 +7,8 @@ import { DBSchema, Transformer } from './types'
 import { TransformerCard } from './components/TransformerCard'
 import { TransformerForm } from './components/TransformerForm'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { improveTransformer, remixTransformers, generateCategories } from './utils/ai'
 
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
 
@@ -17,6 +19,7 @@ function TabApp() {
   const [sortOption, setSortOption] = useState<string>('newest')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [editingTransformer, setEditingTransformer] = useState<Transformer | null>(null)
+  const [isRemixing, setIsRemixing] = useState(false)
 
   const { data } = db.useQuery({
     transformers: {},
@@ -106,6 +109,47 @@ function TabApp() {
     ]);
   }
 
+  const handleRemix = async () => {
+    if (!user || !userSettings) return;
+    
+    setIsRemixing(true);
+    const selectedTransformers = transformers.filter(t => userSettings.transformersSelected.includes(t.id));
+    
+    try {
+      const remixed = await remixTransformers(
+        userSettings,
+        selectedTransformers.map(t => ({ title: t.title, content: t.content }))
+      );
+      const newTransformerId = crypto.randomUUID();
+      
+      db.transact([
+        tx.transformers[newTransformerId].update({
+          id: newTransformerId,
+          title: remixed.title,
+          content: remixed.content,
+          authorId: user.id,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      ]);
+
+      // Generate categories for the new transformer
+      const categories = await generateCategories(userSettings, remixed.content);
+      db.transact([
+        tx.transformers[newTransformerId].update({ categories })
+      ]);
+
+      // Clear selected transformers
+      db.transact([
+        tx.userSettings[user.id].merge({ transformersSelected: [] })
+      ]);
+    } catch (error) {
+      console.error('Error remixing transformers:', error);
+    } finally {
+      setIsRemixing(false);
+    }
+  };
+
   const sortedTransformers = [...transformers].sort((a, b) => {
     switch (sortOption) {
       case 'newest':
@@ -192,6 +236,16 @@ function TabApp() {
               />
             ))}
           </div>
+          {userSettings.transformersSelected.length > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Button 
+                onClick={handleRemix}
+                disabled={isRemixing}
+              >
+                {isRemixing ? 'Remixing...' : 'Remix Selected Transformers'}
+              </Button>
+            </div>
+          )}
         </div>
       </SettingsPageWrapper>
     </div>
