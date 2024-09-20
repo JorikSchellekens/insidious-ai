@@ -5,7 +5,7 @@ import { InstantReactWeb, User, tx } from "@instantdb/react";
 import { DBSchema } from "../types";
 import { TransformerListItem } from './TransformerListItem';
 import { TransformerForm } from './TransformerForm';
-import { UserSettings } from '../types';
+import { UserSettings, Transformer } from '../types';
 
 interface TransformerListProps {
   db: InstantReactWeb<DBSchema>;
@@ -16,12 +16,7 @@ type ListOption = "likedTransformers" | "creationDate" | "topLikes" | "selected"
 
 export function TransformerList({ db, user }: TransformerListProps) {
   const [listOption, setListOption] = useState<ListOption>("likedTransformers");
-  const [editingTransformer, setEditingTransformer] = useState<{
-    id: string;
-    title: string;
-    content: string;
-    categories: string[];
-  } | null>(null);
+  const [editingTransformer, setEditingTransformer] = useState<Transformer | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const { data } = db.useQuery({
@@ -31,13 +26,13 @@ export function TransformerList({ db, user }: TransformerListProps) {
   });
 
   const userSettings: UserSettings = data?.userSettings[0] || {
-    id: user.id,
     email: '',
     apiKey: '',
     pluginActive: false,
     transformersSelected: [],
-    categories: [],
-    defaultPrompt: ''
+    paragraphLimit: 0,
+    selectedModel: '',
+    hoverToReveal: false
   };
 
   const userLikes = useMemo(() => {
@@ -78,7 +73,9 @@ export function TransformerList({ db, user }: TransformerListProps) {
     db.transact([tx.transformers[id].delete()]);
   };
 
-  const handleEdit = (transformer: { id: string; title: string; content: string; categories: string[] }) => {
+  const handleEdit = (transformer: {
+    id: string;
+} & Transformer) => {
     setEditingTransformer(transformer);
   };
 
