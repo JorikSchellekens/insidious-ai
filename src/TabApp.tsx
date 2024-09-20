@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { init } from '@instantdb/react'
+import React, { useState, useMemo } from 'react'
+import { init, tx } from '@instantdb/react'
 import SettingsPageWrapper from './components/SettingsPageWrapper'
 import SettingsPage from './pages/SettingsPage'
 import FirstTimeFlow from './components/FirstTimeFlow'
@@ -25,9 +25,45 @@ function TabApp() {
   const transformers = data?.transformers || []
   const likes = data?.likes || []
 
-  const handleLike = (id: string) => {
-    // TODO: Implement actual like functionality with database update
-    console.log('Like clicked for transformer:', id)
+  const userLikes = useMemo(() => {
+    const likesMap = new Set<string>();
+    likes
+      .filter((like) => like.userId === user?.id)
+      .forEach((like) => likesMap.add(like.transformerId));
+    return likesMap;
+  }, [likes, user?.id]);
+
+  const likesCountMap = useMemo(() => {
+    const countMap: { [key: string]: number } = {};
+    likes.forEach((like) => {
+      countMap[like.transformerId] = (countMap[like.transformerId] || 0) + 1;
+    });
+    return countMap;
+  }, [likes]);
+
+  const handleLike = (transformerId: string) => {
+    if (!user) return;
+
+    if (userLikes.has(transformerId)) {
+      // Unlike
+      const likeToRemove = likes.find(like => like.transformerId === transformerId && like.userId === user.id);
+      if (likeToRemove) {
+        db.transact([
+          tx.likes[likeToRemove.id].delete(),
+        ]);
+      }
+    } else {
+      // Like
+      const likeId = crypto.randomUUID();
+      db.transact([
+        tx.likes[likeId].update({
+          id: likeId,
+          userId: user.id,
+          transformerId: transformerId,
+          createdAt: Date.now(),
+        }),
+      ]);
+    }
   }
 
   const sortedTransformers = [...transformers].sort((a, b) => {
@@ -35,7 +71,7 @@ function TabApp() {
       case 'newest':
         return b.createdAt - a.createdAt
       case 'mostLiked':
-        return (likes.filter(l => l.transformerId === b.id).length) - (likes.filter(l => l.transformerId === a.id).length)
+        return (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0)
       default:
         return 0
     }
@@ -90,8 +126,8 @@ function TabApp() {
                 key={transformer.id} 
                 transformer={transformer} 
                 onLike={handleLike}
-                isLiked={likes.some(l => l.transformerId === transformer.id && l.userId === user.id)}
-                likesCount={likes.filter(l => l.transformerId === transformer.id).length}
+                isLiked={userLikes.has(transformer.id)}
+                likesCount={likesCountMap[transformer.id] || 0}
               />
             ))}
           </div>
