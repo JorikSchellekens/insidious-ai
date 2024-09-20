@@ -20,6 +20,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
     id: string;
     title: string;
     content: string;
+    categories: string[];
   } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -67,16 +68,17 @@ export function TransformerList({ db, user }: TransformerListProps) {
     db.transact([tx.transformers[id].delete()]);
   };
 
-  const handleEdit = (transformer: { id: string; title: string; content: string }) => {
+  const handleEdit = (transformer: { id: string; title: string; content: string; categories?: string[] }) => {
     setEditingTransformer(transformer);
   };
 
-  const handleSaveEdit = (title: string, content: string) => {
+  const handleSaveEdit = (title: string, content: string, categories: string[]) => {
     if (editingTransformer) {
       db.transact([
         tx.transformers[editingTransformer.id].update({
           title,
           content,
+          categories,
           updatedAt: Date.now(),
         })
       ]);
@@ -84,13 +86,14 @@ export function TransformerList({ db, user }: TransformerListProps) {
     }
   };
 
-  const handleCreateNew = (title: string, content: string) => {
+  const handleCreateNew = (title: string, content: string, categories: string[]) => {
     const newId = crypto.randomUUID();
     db.transact([
       tx.transformers[newId].update({
         id: newId,
         title,
         content,
+        categories,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         authorId: user.id
@@ -146,10 +149,11 @@ export function TransformerList({ db, user }: TransformerListProps) {
         <TransformerForm
           initialTitle={editingTransformer.title}
           initialContent={editingTransformer.content}
+          initialCategories={editingTransformer.categories}
           onSubmit={handleSaveEdit}
           onCancel={() => setEditingTransformer(null)}
           submitLabel="Save Changes"
-          userSettings={userSettings}  // Add this line
+          userSettings={userSettings}
         />
       </div>
     );
@@ -174,7 +178,12 @@ export function TransformerList({ db, user }: TransformerListProps) {
         {sortedTransformers.map(transformer => (
           <TransformerListItem
             key={transformer.id}
-            transformer={transformer}
+            transformer={{
+              id: transformer.id,
+              title: transformer.title,
+              updatedAt: transformer.updatedAt,
+              categories: transformer.categories // Pass categories to TransformerListItem
+            }}
             onDelete={handleDelete}
             onEdit={() => handleEdit(transformer)}
             onLike={() => handleLike(transformer.id)}
@@ -193,7 +202,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
             onSubmit={handleCreateNew}
             onCancel={() => setIsCreating(false)}
             submitLabel="Create Transformer"
-            userSettings={userSettings}  // Make sure this line is present
+            userSettings={userSettings}
           />
         </div>
       ) : (

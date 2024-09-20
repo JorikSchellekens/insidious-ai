@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { init } from '@instantdb/react'
 import SettingsPageWrapper from './components/SettingsPageWrapper'
 import SettingsPage from './pages/SettingsPage'
 import FirstTimeFlow from './components/FirstTimeFlow'
-import { DBSchema, Transformer, UserSettings } from './types'
+import { DBSchema, Transformer } from './types'
 import { TransformerCard } from './components/TransformerCard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AI_PROVIDERS } from './constants'
 
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
 
@@ -25,88 +24,18 @@ function TabApp() {
 
   const transformers = data?.transformers || []
   const likes = data?.likes || []
-  const userSettings = data?.userSettings?.[0] as UserSettings | undefined
-
-  const [transformersState, setTransformers] = useState<Transformer[]>([])
-
-  useEffect(() => {
-    if (user && transformers.length > 0 && userSettings) {
-      generateCategories()
-    }
-  }, [user, transformers, userSettings])
-
-  const generateCategories = async () => {
-    if (!userSettings || !userSettings.apiKey || !userSettings.selectedModel) {
-      console.error("User settings not loaded or API key not set")
-      return
-    }
-
-    const updatedTransformers = await Promise.all(transformers.map(async (t) => {
-      const categories = await getAIGeneratedCategories(t.content, userSettings)
-      return {
-        ...t,
-        categories,
-        likes: likes.filter(l => l.transformerId === t.id).length,
-        isLiked: likes.some(l => l.transformerId === t.id && l.userId === user?.id)
-      }
-    }))
-
-    setTransformers(updatedTransformers)
-  }
-
-  const getAIGeneratedCategories = async (content: string, settings: UserSettings): Promise<string[]> => {
-    const provider = AI_PROVIDERS[settings.selectedModel as keyof typeof AI_PROVIDERS]
-    if (!provider) {
-      console.error(`Unsupported model: ${settings.selectedModel}`)
-      return []
-    }
-
-    const prompt = {
-      role: "system",
-      content: "You are an AI assistant that generates categories for text transformation prompts. Given a transformer prompt, generate 2-3 relevant categories. Respond with only the categories, separated by commas, without any additional text or explanation."
-    }
-
-    const userPrompt = {
-      role: "user",
-      content: `Generate categories for this transformer prompt: "${content}"`
-    }
-
-    try {
-      const response = await fetch(provider.url, {
-        method: "POST",
-        headers: provider.headers(settings.apiKey),
-        body: JSON.stringify(provider.bodyFormatter([prompt, userPrompt]))
-      })
-
-      const body = await response.json()
-      let categoriesString: string
-
-      if (settings.selectedModel.startsWith('claude')) {
-        categoriesString = body.content[0].text
-      } else {
-        categoriesString = body.choices[0].message.content
-      }
-
-      return categoriesString.split(',').map(category => category.trim())
-    } catch (error) {
-      console.error('Error generating categories:', error)
-      return []
-    }
-  }
 
   const handleLike = (id: string) => {
     // TODO: Implement actual like functionality with database update
-    setTransformers(transformersState.map(t => 
-      t.id === id ? { ...t, likes: t.isLiked ? t.likes - 1 : t.likes + 1, isLiked: !t.isLiked } : t
-    ))
+    console.log('Like clicked for transformer:', id)
   }
 
-  const sortedTransformers = [...transformersState].sort((a, b) => {
+  const sortedTransformers = [...transformers].sort((a, b) => {
     switch (sortOption) {
       case 'newest':
         return b.createdAt - a.createdAt
       case 'mostLiked':
-        return b.likes - a.likes
+        return (likes.filter(l => l.transformerId === b.id).length) - (likes.filter(l => l.transformerId === a.id).length)
       default:
         return 0
     }
@@ -114,9 +43,9 @@ function TabApp() {
 
   const filteredTransformers = selectedCategory === 'all' 
     ? sortedTransformers 
-    : sortedTransformers.filter(t => t.categories.includes(selectedCategory))
+    : sortedTransformers.filter(t => t.categories?.includes(selectedCategory))
 
-  const allCategories = Array.from(new Set(transformersState.flatMap(t => t.categories)))
+  const allCategories = Array.from(new Set(transformers.flatMap(t => t.categories || [])))
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>
@@ -157,7 +86,13 @@ function TabApp() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTransformers.map(transformer => (
-              <TransformerCard key={transformer.id} transformer={transformer} onLike={handleLike} />
+              <TransformerCard 
+                key={transformer.id} 
+                transformer={transformer} 
+                onLike={handleLike}
+                isLiked={likes.some(l => l.transformerId === transformer.id && l.userId === user.id)}
+                likesCount={likes.filter(l => l.transformerId === transformer.id).length}
+              />
             ))}
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,8 @@ import { UserSettings } from '../types';
 interface TransformerFormProps {
   initialTitle?: string;
   initialContent?: string;
-  onSubmit: (title: string, content: string) => void;
+  initialCategories?: string[];
+  onSubmit: (title: string, content: string, categories: string[]) => void;
   onCancel: () => void;
   submitLabel: string;
   userSettings: UserSettings;
@@ -17,6 +18,7 @@ interface TransformerFormProps {
 export function TransformerForm({ 
   initialTitle = '', 
   initialContent = '', 
+  initialCategories = [],
   onSubmit, 
   onCancel, 
   submitLabel,
@@ -24,17 +26,66 @@ export function TransformerForm({
 }: TransformerFormProps) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
+  const [categories, setCategories] = useState<string[]>(initialCategories);
   const [isImproving, setIsImproving] = useState(false);
+  const [isGeneratingCategories, setIsGeneratingCategories] = useState(false);
+
+  const generateCategories = useCallback(async (text: string) => {
+    if (!text || !userSettings.apiKey) return;
+    setIsGeneratingCategories(true);
+
+    const provider = AI_PROVIDERS[userSettings.selectedModel as keyof typeof AI_PROVIDERS];
+    if (!provider) {
+      console.error(`Unsupported model: ${userSettings.selectedModel}`);
+      setIsGeneratingCategories(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(provider.url, {
+        method: 'POST',
+        headers: provider.headers(userSettings.apiKey),
+        body: JSON.stringify(provider.bodyFormatter([
+          { 
+            role: "system", 
+            content: "You are a helpful assistant that generates relevant categories for a given text. Provide 3-5 categories as a comma-separated list."
+          },
+          {
+            role: "user",
+            content: `Generate categories for the following text: ${text}`
+          }
+        ]))
+      });
+
+      const data = await response.json();
+      let generatedCategories;
+      if (userSettings.selectedModel.startsWith('claude')) {
+        generatedCategories = data.content[0].text.split(',').map((cat: string) => cat.trim());
+      } else {
+        generatedCategories = data.choices[0].message.content.split(',').map((cat: string) => cat.trim());
+      }
+      setCategories(generatedCategories);
+    } catch (error) {
+      console.error('Error generating categories:', error);
+    } finally {
+      setIsGeneratingCategories(false);
+    }
+  }, [userSettings]);
 
   useEffect(() => {
-    setTitle(initialTitle);
-    setContent(initialContent);
-  }, [initialTitle, initialContent]);
+    if (content && categories.length === 0) {
+      generateCategories(content);
+    }
+  }, [content, categories.length, generateCategories]);
 
-  const handleSubmit = () => {
-    onSubmit(title, content);
+  const handleSubmit = async () => {
+    if (categories.length === 0) {
+      await generateCategories(content);
+    }
+    onSubmit(title, content, categories);
     setTitle('');
     setContent('');
+    setCategories([]);
   };
 
   const improveWithAI = async () => {
@@ -60,12 +111,6 @@ Your response should follow this format exactly:
 }`;
 
     try {
-      console.log('Sending request to AI provider:', provider.url);
-      console.log('Request body:', JSON.stringify(provider.bodyFormatter([
-        { role: 'system', content: 'You are an AI assistant that improves transformer prompts for text modification tasks.' },
-        { role: 'user', content: prompt }
-      ])));
-
       const response = await fetch(provider.url, {
         method: 'POST',
         headers: provider.headers(userSettings.apiKey),
@@ -76,24 +121,17 @@ Your response should follow this format exactly:
       });
 
       const data = await response.json();
-      console.log('Raw AI response:', data);
-
       let improvedTitle, improvedContent;
 
-      if (userSettings.selectedModel.startsWith('claude-')) {
+      if (userSettings.selectedModel.startsWith('claude')) {
         const jsonContent = JSON.parse(data.content[0].text);
         improvedTitle = jsonContent.title;
         improvedContent = jsonContent.content;
-      } else if (userSettings.selectedModel.startsWith('gpt-')) {
+      } else {
         const jsonContent = JSON.parse(data.choices[0].message.content);
         improvedTitle = jsonContent.title;
         improvedContent = jsonContent.content;
-      } else {
-        throw new Error('Unsupported AI model');
       }
-
-      console.log('Parsed improved title:', improvedTitle);
-      console.log('Parsed improved content:', improvedContent);
 
       if (improvedTitle && improvedContent) {
         setTitle(improvedTitle);
@@ -103,7 +141,6 @@ Your response should follow this format exactly:
       }
     } catch (error) {
       console.error('Error improving with AI:', error);
-      // You might want to show an error message to the user here
     } finally {
       setIsImproving(false);
     }
@@ -122,9 +159,22 @@ Your response should follow this format exactly:
         placeholder="Enter content"
         rows={5}
       />
+      <div>
+        <p>Categories:</p>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {categories.map((category, index) => (
+            <span key={index} className="bg-gray-200 rounded-full px-3 py-1 text-sm">
+              {category}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="flex justify-between space-x-2">
         <Button onClick={improveWithAI} disabled={isImproving}>
           {isImproving ? 'Improving...' : 'Improve with AI'}
+        </Button>
+        <Button onClick={() => generateCategories(content)} disabled={isGeneratingCategories}>
+          {isGeneratingCategories ? 'Generating...' : 'Generate Categories'}
         </Button>
         <div>
           <Button onClick={onCancel} variant="outline" className="mr-2">Cancel</Button>

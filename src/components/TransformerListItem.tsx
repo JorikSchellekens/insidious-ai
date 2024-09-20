@@ -7,6 +7,7 @@ interface TransformerListItemProps {
     id: string;
     title: string;
     updatedAt: number;
+    categories?: string[];
   };
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
@@ -36,28 +37,8 @@ export function TransformerListItem({
       }`}
       onClick={() => onSelect(transformer.id)}
     >
-      <span className="text-sm font-medium truncate block">{transformer.title}</span>
-      <span className="text-xs text-gray-500 block">
-        {format(transformer.updatedAt, 'MMM d, yyyy')}
-      </span>
-      <div className="flex items-center mt-2">
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            isLikedByUser ? onUnlike(transformer.id) : onLike(transformer.id);
-          }}
-          size="sm"
-          variant="ghost"
-          className="p-0"
-        >
-          <Heart
-            className={`h-5 w-5 ${isLikedByUser ? 'text-red-600' : 'text-gray-400'}`}
-            fill={isLikedByUser ? 'currentColor' : 'none'}
-          />
-        </Button>
-        <span className="ml-2 text-sm">{likesCount} likes</span>
-      </div>
-      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Edit and Delete buttons pinned to top right */}
+      <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           onClick={(e) => {
             e.stopPropagation();
@@ -65,7 +46,7 @@ export function TransformerListItem({
           }}
           size="sm"
           variant="ghost"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200" // Updated background color
         >
           <Edit2 className="h-4 w-4" />
         </Button>
@@ -80,6 +61,40 @@ export function TransformerListItem({
         >
           <Trash2 className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Content */}
+      <div className="pr-20"> {/* Add right padding to prevent overlap with buttons */}
+        <span className="text-sm font-medium truncate block">{transformer.title}</span>
+        <span className="text-xs text-gray-500 block">
+          {format(transformer.updatedAt, 'MMM d, yyyy')}
+        </span>
+        {transformer.categories && transformer.categories.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {transformer.categories.map((category, index) => (
+              <span key={index} className="text-xs bg-gray-200 rounded-full px-2 py-1">
+                {category}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center mt-2">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              isLikedByUser ? onUnlike(transformer.id) : onLike(transformer.id);
+            }}
+            size="sm"
+            variant="ghost"
+            className="p-0"
+          >
+            <Heart
+              className={`h-5 w-5 ${isLikedByUser ? 'text-red-600' : 'text-gray-400'}`}
+              fill={isLikedByUser ? 'currentColor' : 'none'}
+            />
+          </Button>
+          <span className="ml-2 text-sm">{likesCount} likes</span>
+        </div>
       </div>
     </li>
   );

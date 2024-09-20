@@ -7,9 +7,11 @@ import { Transformer } from '../types';
 interface TransformerCardProps {
   transformer: Transformer;
   onLike: (id: string) => void;
+  isLiked: boolean;
+  likesCount: number;
 }
 
-export function TransformerCard({ transformer, onLike }: TransformerCardProps) {
+export function TransformerCard({ transformer, onLike, isLiked, likesCount }: TransformerCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -19,11 +21,15 @@ export function TransformerCard({ transformer, onLike }: TransformerCardProps) {
       <CardContent>
         <p>{transformer.content}</p>
         <div className="mt-2">
-          {transformer.categories.map(category => (
-            <span key={category} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-              {category}
-            </span>
-          ))}
+          {transformer.categories && transformer.categories.length > 0 ? (
+            transformer.categories.map((category, index) => (
+              <span key={index} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                {category}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm text-muted-foreground">No categories</span>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -31,13 +37,13 @@ export function TransformerCard({ transformer, onLike }: TransformerCardProps) {
           variant="ghost" 
           size="sm" 
           onClick={() => onLike(transformer.id)}
-          className={transformer.isLiked ? "text-red-500" : ""}
+          className={isLiked ? "text-red-500" : ""}
         >
           <Heart className="mr-2 h-4 w-4" />
-          {transformer.likes} Likes
+          {likesCount} Likes
         </Button>
         <span className="text-sm text-muted-foreground">
-          {transformer.isLiked ? "You liked this" : ""}
+          {isLiked ? "You liked this" : ""}
         </span>
       </CardFooter>
     </Card>
