@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { init, tx } from '@instantdb/react'
 import SettingsPageWrapper from './components/SettingsPageWrapper'
 import SettingsPage from './pages/SettingsPage'
 import FirstTimeFlow from './components/FirstTimeFlow'
 import { DBSchema, Transformer } from './types'
 import { TransformerCard } from './components/TransformerCard'
+import { TransformerForm } from './components/TransformerForm'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
@@ -15,6 +16,7 @@ function TabApp() {
   const { isLoading, user, error } = db.useAuth()
   const [sortOption, setSortOption] = useState<string>('newest')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [editingTransformer, setEditingTransformer] = useState<Transformer | null>(null)
 
   const { data } = db.useQuery({
     transformers: {},
@@ -24,6 +26,7 @@ function TabApp() {
 
   const transformers = data?.transformers || []
   const likes = data?.likes || []
+  const userSettings = data?.userSettings[0];
 
   const userLikes = useMemo(() => {
     const likesMap = new Set<string>();
@@ -40,6 +43,11 @@ function TabApp() {
     });
     return countMap;
   }, [likes]);
+
+  // Handle User Settings not loaded return a loading state
+  if (!userSettings) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>
+  }
 
   const handleLike = (transformerId: string) => {
     if (!user) return;
@@ -64,6 +72,38 @@ function TabApp() {
         }),
       ]);
     }
+  }
+
+  const handleEdit = (transformerId: string) => {
+    const transformer = transformers.find(t => t.id === transformerId);
+    if (transformer) {
+      setEditingTransformer(transformer);
+    }
+  }
+
+  const handleSaveEdit = (title: string, content: string, categories: string[]) => {
+    if (editingTransformer) {
+      db.transact([
+        tx.transformers[editingTransformer.id].update({
+          title,
+          content,
+          categories,
+          updatedAt: Date.now(),
+        })
+      ]);
+      setEditingTransformer(null);
+    }
+  }
+
+  const handleSelect = (transformerId: string) => {
+    const currentSelected = userSettings.transformersSelected || [];
+    const newSelected = currentSelected.includes(transformerId)
+      ? currentSelected.filter(id => id !== transformerId)
+      : [...currentSelected, transformerId];
+
+    db.transact([
+      tx.userSettings[user!.id].merge({ transformersSelected: newSelected })
+    ]);
   }
 
   const sortedTransformers = [...transformers].sort((a, b) => {
@@ -92,6 +132,23 @@ function TabApp() {
   }
   
   if (!user) return <FirstTimeFlow db={db} />
+
+  if (editingTransformer) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <h2 className="text-2xl font-bold mb-4">Edit Transformer</h2>
+        <TransformerForm
+          initialTitle={editingTransformer.title}
+          initialContent={editingTransformer.content}
+          initialCategories={editingTransformer.categories || []}
+          onSubmit={handleSaveEdit}
+          onCancel={() => setEditingTransformer(null)}
+          submitLabel="Save Changes"
+          userSettings={userSettings}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,7 +183,10 @@ function TabApp() {
                 key={transformer.id} 
                 transformer={transformer} 
                 onLike={handleLike}
+                onEdit={handleEdit}
+                onSelect={handleSelect}
                 isLiked={userLikes.has(transformer.id)}
+                isSelected={userSettings.transformersSelected.includes(transformer.id)}
                 likesCount={likesCountMap[transformer.id] || 0}
                 currentUserId={user.id}
               />
