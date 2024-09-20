@@ -5,7 +5,7 @@ export type UserSettings = {
   transformerSelected: string;
   paragraphLimit: number;
   selectedModel: string;
-  hoverToReveal: boolean; // Add this line
+  hoverToReveal: boolean;
 }
 
 export type Transformer = {
@@ -15,7 +15,6 @@ export type Transformer = {
     createdAt: number;
     updatedAt: number;
     authorId: string;
-    // likesCount: number; // Remove this line
 };
 
 export type DBSchema = {
