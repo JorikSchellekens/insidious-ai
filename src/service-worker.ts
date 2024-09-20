@@ -73,6 +73,12 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
     return;
   }
 
+  const systemPrompt = formatSystemPrompt(userSettings.transformerSelected);
+  const userPrompt = {
+    "role": "user",
+    "content": text
+  };
+
   fetch(
     provider.url,
     {
@@ -80,11 +86,8 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
       headers: provider.headers(apiKey),
       body: JSON.stringify(
         provider.bodyFormatter([
-          formatSystemPrompt(userSettings.transformerSelected),
-          {
-            "role": "user",
-            "content": text
-          }
+          systemPrompt,
+          userPrompt
         ])
       ),
     }
