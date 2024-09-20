@@ -41,13 +41,28 @@ db.subscribeQuery(
   }
 )
 
-function formatSystemPrompt(trasnformerId: string) {
+const formatSystemPrompt = (transformerIds: string[]) => {
+  const selectedTransformers = transformers?.filter(t => transformerIds.includes(t.id)) || [];
+  if (selectedTransformers.length === 0) return { role: "system", content: "You are a helpful assistant." };
+  
   const prefix = "You are a text modification assistant. Your task is to modify the given text according to the user's request. Respond only with the modified text, without any additional commentary or explanations. Keep your response concise and directly address the user's request. Preserve any non-textual styling or formatting present in the original text. If the original text contains HTML elements or other markup, maintain a similar structure in your response. Do not add any prefixes, suffixes, or additional formatting unless explicitly asked.";
-  return {
-    "role": "system",
-    "content": `${prefix}\n\n${transformers?.find(t => t.id === trasnformerId)?.content}`
+
+  if (selectedTransformers.length === 1) {
+    return { 
+      role: "system", 
+      content: `${prefix}\n\nYour specific modification task is:\n${selectedTransformers[0].content}`
+    };
   }
-}
+
+  // Combine multiple prompts
+  const combinedContent = `${prefix}\n\nYour specific modification tasks are:
+
+${selectedTransformers.map((t, index) => `${index + 1}. ${t.content}`).join('\n')}
+
+Apply all these modifications simultaneously while maintaining the essence and structure of the original text. Balance these objectives appropriately in your response.`;
+
+  return { role: "system", content: combinedContent };
+};
 
 type AIProviderKey = keyof typeof AI_PROVIDERS;
 
@@ -73,7 +88,7 @@ const insidiate = async (text: string, sendResponse: (response: string) => void)
     return;
   }
 
-  const systemPrompt = formatSystemPrompt(userSettings.transformerSelected);
+  const systemPrompt = formatSystemPrompt(userSettings.transformersSelected);
   const userPrompt = {
     "role": "user",
     "content": text

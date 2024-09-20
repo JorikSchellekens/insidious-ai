@@ -31,7 +31,9 @@ export function TransformerListItem({
 }: TransformerListItemProps) {
   return (
     <li 
-      className={`p-2 rounded-md hover:bg-accent group relative cursor-pointer ${isSelected ? 'bg-accent' : ''}`}
+      className={`p-2 rounded-md hover:bg-accent group relative cursor-pointer ${
+        isSelected ? 'bg-accent border-l-4 border-primary' : ''
+      }`}
       onClick={() => onSelect(transformer.id)}
     >
       <span className="text-sm font-medium truncate block">{transformer.title}</span>

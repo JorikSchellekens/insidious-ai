@@ -2,7 +2,7 @@ export type UserSettings = {
   email: string;
   apiKey: string;
   pluginActive: boolean;
-  transformerSelected: string;
+  transformersSelected: string[]; // Changed from transformerSelected to transformersSelected
   paragraphLimit: number;
   selectedModel: string;
   hoverToReveal: boolean;

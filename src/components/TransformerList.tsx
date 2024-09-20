@@ -11,10 +11,10 @@ interface TransformerListProps {
   user: User;
 }
 
-type SortOption = "userLikes" | "creationDate" | "topLikes";
+type ListOption = "userLikes" | "creationDate" | "topLikes" | "selected";
 
 export function TransformerList({ db, user }: TransformerListProps) {
-  const [sortOption, setSortOption] = useState<SortOption>("userLikes");
+  const [listOption, setListOption] = useState<ListOption>("userLikes");
   const [editingTransformer, setEditingTransformer] = useState<{
     id: string;
     title: string;
@@ -47,17 +47,18 @@ export function TransformerList({ db, user }: TransformerListProps) {
   const sortedTransformers = useMemo(() => {
     let transformersArray = [...(data?.transformers || [])];
 
-    switch (sortOption) {
-      case 'creationDate':
-        return transformersArray.sort((a, b) => b.createdAt - a.createdAt);
-      case 'topLikes':
-        return transformersArray.sort((a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0));
-      case 'userLikes':
-        return transformersArray.filter(t => userLikes.has(t.id));
-      default:
-        return transformersArray;
+    if (listOption === "selected") {
+      transformersArray = transformersArray.filter(t => data?.userSettings[0]?.transformersSelected.includes(t.id));
+    } else if (listOption === "userLikes") {
+      transformersArray = transformersArray.filter(t => userLikes.has(t.id));
+    } else if (listOption === "topLikes") {
+      transformersArray.sort((a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0));
+    } else if (listOption === "creationDate") {
+      transformersArray.sort((a, b) => b.createdAt - a.createdAt);
     }
-  }, [data?.transformers, sortOption, userLikes, likesCountMap]);
+
+    return transformersArray;
+  }, [data?.transformers, listOption, userLikes, likesCountMap, data?.userSettings]);
 
   const handleDelete = (id: string) => {
     db.transact([tx.transformers[id].delete()]);
@@ -117,8 +118,13 @@ export function TransformerList({ db, user }: TransformerListProps) {
   };
 
   const handleSelect = (id: string) => {
+    const currentSelected = data?.userSettings[0]?.transformersSelected || [];
+    const newSelected = currentSelected.includes(id)
+      ? currentSelected.filter(tId => tId !== id)
+      : [...currentSelected, id];
+
     db.transact([
-      tx.userSettings[user.id].merge({ transformerSelected: id })
+      tx.userSettings[user.id].merge({ transformersSelected: newSelected })
     ]);
     // Notify the service worker that the prompt has changed
     chrome.runtime.sendMessage({ type: "promptChanged" });
@@ -128,7 +134,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
     return <div>Loading...</div>;
   }
 
-  const selectedTransformerId = data.userSettings[0]?.transformerSelected;
+  const selectedTransformerIds = data.userSettings[0]?.transformersSelected || [];
 
   if (editingTransformer) {
     return (
@@ -150,13 +156,14 @@ export function TransformerList({ db, user }: TransformerListProps) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Content Transformers</h2>
         <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value as SortOption)}
-          className="w-[180px] p-2 border rounded"
+          value={listOption}
+          onChange={(e) => setListOption(e.target.value as ListOption)}
+          className="p-2 border rounded"
         >
           <option value="userLikes">My Likes</option>
           <option value="topLikes">Top Likes</option>
           <option value="creationDate">Newest</option>
+          <option value="selected">Selected Transformers</option>
         </select>
       </div>
       <ul className="space-y-2 mt-4">
@@ -171,7 +178,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
             onSelect={() => handleSelect(transformer.id)}
             likesCount={likesCountMap[transformer.id] || 0}
             isLikedByUser={userLikes.has(transformer.id)}
-            isSelected={transformer.id === selectedTransformerId}
+            isSelected={selectedTransformerIds.includes(transformer.id)}
           />
         ))}
       </ul>
