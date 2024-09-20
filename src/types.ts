@@ -8,15 +8,15 @@ export type UserSettings = {
   hoverToReveal: boolean;
 }
 
-export type Transformer = {
-    id: string;
-    title: string;
-    content: string;
-    createdAt: number;
-    updatedAt: number;
-    authorId: string;
-    categories?: string[]; // Make sure this is included
-};
+export interface Transformer {
+  id: string;
+  title: string;
+  content: string;
+  categories?: string[];
+  createdAt: number;
+  updatedAt: number;
+  authorId: string;
+}
 
 export type DBSchema = {
   userSettings: UserSettings;

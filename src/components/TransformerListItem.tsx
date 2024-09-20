@@ -8,6 +8,7 @@ interface TransformerListItemProps {
     title: string;
     updatedAt: number;
     categories?: string[];
+    authorId: string; // Add authorId to the transformer object
   };
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
@@ -17,6 +18,7 @@ interface TransformerListItemProps {
   likesCount: number;
   isLikedByUser: boolean;
   isSelected: boolean;
+  currentUserId: string;
 }
 
 export function TransformerListItem({ 
@@ -28,8 +30,11 @@ export function TransformerListItem({
   onSelect,
   likesCount, 
   isLikedByUser,
-  isSelected
+  isSelected,
+  currentUserId
 }: TransformerListItemProps) {
+  const isUserCreated = transformer.authorId === currentUserId;
+
   return (
     <li 
       className={`p-2 rounded-md hover:bg-accent group relative cursor-pointer ${
@@ -65,9 +70,14 @@ export function TransformerListItem({
 
       {/* Content */}
       <div className="pr-20"> {/* Add right padding to prevent overlap with buttons */}
-        <span className="text-sm font-medium truncate block">{transformer.title}</span>
+        <span className="text-sm font-medium truncate block">
+          {transformer.title}
+        </span>
         <span className="text-xs text-gray-500 block">
           {format(transformer.updatedAt, 'MMM d, yyyy')}
+        </span>
+        <span className={`text-xs ${isUserCreated ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
+          Author: {transformer.authorId}
         </span>
         {transformer.categories && transformer.categories.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">

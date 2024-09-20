@@ -1,5 +1,4 @@
-import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { Transformer } from '../types';
@@ -9,42 +8,43 @@ interface TransformerCardProps {
   onLike: (id: string) => void;
   isLiked: boolean;
   likesCount: number;
+  currentUserId: string;
 }
 
-export function TransformerCard({ transformer, onLike, isLiked, likesCount }: TransformerCardProps) {
+export function TransformerCard({ transformer, onLike, isLiked, likesCount, currentUserId }: TransformerCardProps) {
+  const isUserCreated = transformer.authorId === currentUserId;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{transformer.title}</CardTitle>
-        <p className="text-sm text-muted-foreground">by {transformer.authorId}</p>
-      </CardHeader>
-      <CardContent>
-        <p>{transformer.content}</p>
-        <div className="mt-2">
-          {transformer.categories && transformer.categories.length > 0 ? (
-            transformer.categories.map((category, index) => (
-              <span key={index} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+    <Card className="w-full">
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-semibold mb-2">{transformer.title}</h3>
+        <p className="text-sm text-gray-600 mb-2">{transformer.content.substring(0, 100)}...</p>
+        <span className={`text-xs ${isUserCreated ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
+          Author: {transformer.authorId}
+        </span>
+        {transformer.categories && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {transformer.categories.map((category, index) => (
+              <span key={index} className="text-xs bg-gray-200 rounded-full px-2 py-1">
                 {category}
               </span>
-            ))
-          ) : (
-            <span className="text-sm text-muted-foreground">No categories</span>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+      <CardFooter className="flex justify-between items-center">
+        <Button
           onClick={() => onLike(transformer.id)}
-          className={isLiked ? "text-red-500" : ""}
+          variant="ghost"
+          size="sm"
+          className="p-0"
         >
-          <Heart className="mr-2 h-4 w-4" />
-          {likesCount} Likes
+          <Heart
+            className={`h-5 w-5 ${isLiked ? 'text-red-600' : 'text-gray-400'}`}
+            fill={isLiked ? 'currentColor' : 'none'}
+          />
+          <span className="ml-2">{likesCount}</span>
         </Button>
-        <span className="text-sm text-muted-foreground">
-          {isLiked ? "You liked this" : ""}
-        </span>
       </CardFooter>
     </Card>
   );

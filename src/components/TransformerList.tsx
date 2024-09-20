@@ -12,10 +12,10 @@ interface TransformerListProps {
   user: User;
 }
 
-type ListOption = "userLikes" | "creationDate" | "topLikes" | "selected";
+type ListOption = "likedTransformers" | "creationDate" | "topLikes" | "selected" | "myTransformers";
 
 export function TransformerList({ db, user }: TransformerListProps) {
-  const [listOption, setListOption] = useState<ListOption>("userLikes");
+  const [listOption, setListOption] = useState<ListOption>("likedTransformers");
   const [editingTransformer, setEditingTransformer] = useState<{
     id: string;
     title: string;
@@ -30,7 +30,15 @@ export function TransformerList({ db, user }: TransformerListProps) {
     userSettings: { $: { where: { id: user.id } } },
   });
 
-  const userSettings: UserSettings = data?.userSettings[0] || {};
+  const userSettings: UserSettings = data?.userSettings[0] || {
+    id: user.id,
+    email: '',
+    apiKey: '',
+    pluginActive: false,
+    transformersSelected: [],
+    categories: [],
+    defaultPrompt: ''
+  };
 
   const userLikes = useMemo(() => {
     const likesMap = new Set<string>();
@@ -53,22 +61,24 @@ export function TransformerList({ db, user }: TransformerListProps) {
 
     if (listOption === "selected") {
       transformersArray = transformersArray.filter(t => data?.userSettings[0]?.transformersSelected.includes(t.id));
-    } else if (listOption === "userLikes") {
+    } else if (listOption === "likedTransformers") {
       transformersArray = transformersArray.filter(t => userLikes.has(t.id));
     } else if (listOption === "topLikes") {
       transformersArray.sort((a, b) => (likesCountMap[b.id] || 0) - (likesCountMap[a.id] || 0));
     } else if (listOption === "creationDate") {
       transformersArray.sort((a, b) => b.createdAt - a.createdAt);
+    } else if (listOption === "myTransformers") {
+      transformersArray = transformersArray.filter(t => t.authorId === user.id);
     }
 
     return transformersArray;
-  }, [data?.transformers, listOption, userLikes, likesCountMap, data?.userSettings]);
+  }, [data?.transformers, listOption, userLikes, likesCountMap, data?.userSettings, user.id]);
 
   const handleDelete = (id: string) => {
     db.transact([tx.transformers[id].delete()]);
   };
 
-  const handleEdit = (transformer: { id: string; title: string; content: string; categories?: string[] }) => {
+  const handleEdit = (transformer: { id: string; title: string; content: string; categories: string[] }) => {
     setEditingTransformer(transformer);
   };
 
@@ -168,7 +178,8 @@ export function TransformerList({ db, user }: TransformerListProps) {
           onChange={(e) => setListOption(e.target.value as ListOption)}
           className="p-2 border rounded"
         >
-          <option value="userLikes">My Likes</option>
+          <option value="likedTransformers">Liked Transformers</option>
+          <option value="myTransformers">My Transformers</option>
           <option value="topLikes">Top Likes</option>
           <option value="creationDate">Newest</option>
           <option value="selected">Selected Transformers</option>
@@ -182,7 +193,8 @@ export function TransformerList({ db, user }: TransformerListProps) {
               id: transformer.id,
               title: transformer.title,
               updatedAt: transformer.updatedAt,
-              categories: transformer.categories // Pass categories to TransformerListItem
+              categories: transformer.categories,
+              authorId: transformer.authorId // Add this line
             }}
             onDelete={handleDelete}
             onEdit={() => handleEdit(transformer)}
@@ -192,6 +204,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
             likesCount={likesCountMap[transformer.id] || 0}
             isLikedByUser={userLikes.has(transformer.id)}
             isSelected={selectedTransformerIds.includes(transformer.id)}
+            currentUserId={user.id} // Add this line
           />
         ))}
       </ul>

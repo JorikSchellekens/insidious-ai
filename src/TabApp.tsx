@@ -128,6 +128,7 @@ function TabApp() {
                 onLike={handleLike}
                 isLiked={userLikes.has(transformer.id)}
                 likesCount={likesCountMap[transformer.id] || 0}
+                currentUserId={user.id}
               />
             ))}
           </div>
