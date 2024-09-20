@@ -15,6 +15,9 @@ export type Transformer = {
     createdAt: number;
     updatedAt: number;
     authorId: string;
+    categories: string[]; // Add this line
+    likes: number; // Add this line
+    isLiked: boolean; // Add this line
 };
 
 export type DBSchema = {
