@@ -4,6 +4,7 @@ import SettingsPageWrapper from './components/SettingsPageWrapper';
 import SettingsPage from './pages/SettingsPage';
 import FirstTimeFlow from './components/FirstTimeFlow';
 import { DBSchema } from './types';
+import { ArrowUpRight } from 'lucide-react';
 
 // ID for app: insidiousai
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a';
@@ -31,20 +32,29 @@ interface LoggedInAppProps {
 }
 
 function LoggedInApp({ user }: LoggedInAppProps) {
-
   const {isLoading: isLoadingUserSettings, data: userSettings, error: errorUserSettings} = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
+  
+  const openNewTab = () => {
+    chrome.tabs.create({ url: 'tab.html' });
+  };
+
   if (isLoadingUserSettings) return <div>Loading user settings...</div>
   if (errorUserSettings) return <div>Error loading user settings: {errorUserSettings.message}</div>
   if (!userSettings || userSettings.userSettings.length === 0) return <SettingsPage db={db} user={user} />
 
-  
   return (
-    <div className="min-w-[350px] min-h-[600px]">
-        <SettingsPageWrapper settingsPage={<SettingsPage db={db} user={user} />}>
-          <div className="p-4 bg-gray-100 min-h-screen">
-            <Home db={db} user={user} />
-          </div>
-        </SettingsPageWrapper>
+    <div className="min-w-[350px] min-h-[600px] relative">
+      <div 
+        className="absolute top-4 right-4 cursor-pointer hover:scale-110 transition-transform z-50"
+        onClick={openNewTab}
+      >
+        <ArrowUpRight size={24} />
+      </div>
+      <SettingsPageWrapper settingsPage={<SettingsPage db={db} user={user} />}>
+        <div className="p-4 bg-gray-100 min-h-screen">
+          <Home db={db} user={user} />
+        </div>
+      </SettingsPageWrapper>
     </div>
   )
 }

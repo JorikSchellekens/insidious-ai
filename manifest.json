@@ -5,8 +5,7 @@
   "manifest_version": 3,
   "author": "Jorik Schellekens",
   "action": {
-    "default_popup": "index.html",
-    "default_title": "Insidious AI!"
+    "default_popup": "index.html"
   },
   "icons": {
     "16": "assets/insidious_icon.png",
@@ -27,5 +26,11 @@
   ],
   "background": {
     "service_worker": "src/service-worker.ts"
-  }
+  },
+  "chrome_url_overrides": {
+    "newtab": "tab.html"
+  },
+  "permissions": [
+    "tabs"
+  ]
 }

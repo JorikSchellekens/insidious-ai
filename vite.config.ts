@@ -28,5 +28,11 @@ export default defineConfig({
   build: {
     // generate .vite/manifest.json in outDir
     manifest: true, // Enable Vite to generate manifest.json
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        tab: 'tab.html',
+      },
+    },
   }
 })
