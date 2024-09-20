@@ -25,6 +25,7 @@ export function TransformerList({ db, user }: TransformerListProps) {
   const { data } = db.useQuery({
     transformers: {},
     likes: {},
+    userSettings: { $: { where: { id: user.id } } },
   });
 
   const userLikes = useMemo(() => {
@@ -115,9 +116,19 @@ export function TransformerList({ db, user }: TransformerListProps) {
     }
   };
 
+  const handleSelect = (id: string) => {
+    db.transact([
+      tx.userSettings[user.id].merge({ transformerSelected: id })
+    ]);
+    // Notify the service worker that the prompt has changed
+    chrome.runtime.sendMessage({ type: "promptChanged" });
+  };
+
   if (!data) {
     return <div>Loading...</div>;
   }
+
+  const selectedTransformerId = data.userSettings[0]?.transformerSelected;
 
   if (editingTransformer) {
     return (
@@ -157,8 +168,10 @@ export function TransformerList({ db, user }: TransformerListProps) {
             onEdit={() => handleEdit(transformer)}
             onLike={() => handleLike(transformer.id)}
             onUnlike={() => handleUnlike(transformer.id)}
+            onSelect={() => handleSelect(transformer.id)}
             likesCount={likesCountMap[transformer.id] || 0}
             isLikedByUser={userLikes.has(transformer.id)}
+            isSelected={transformer.id === selectedTransformerId}
           />
         ))}
       </ul>

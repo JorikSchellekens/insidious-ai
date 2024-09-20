@@ -12,8 +12,10 @@ interface TransformerListItemProps {
   onEdit: (id: string) => void;
   onLike: (id: string) => void;
   onUnlike: (id: string) => void;
+  onSelect: (id: string) => void;
   likesCount: number;
   isLikedByUser: boolean;
+  isSelected: boolean;
 }
 
 export function TransformerListItem({ 
@@ -22,18 +24,26 @@ export function TransformerListItem({
   onEdit, 
   onLike,
   onUnlike,
+  onSelect,
   likesCount, 
-  isLikedByUser 
+  isLikedByUser,
+  isSelected
 }: TransformerListItemProps) {
   return (
-    <li className="p-2 rounded-md hover:bg-accent group relative">
+    <li 
+      className={`p-2 rounded-md hover:bg-accent group relative cursor-pointer ${isSelected ? 'bg-accent' : ''}`}
+      onClick={() => onSelect(transformer.id)}
+    >
       <span className="text-sm font-medium truncate block">{transformer.title}</span>
       <span className="text-xs text-gray-500 block">
         {format(transformer.updatedAt, 'MMM d, yyyy')}
       </span>
       <div className="flex items-center mt-2">
         <Button
-          onClick={() => isLikedByUser ? onUnlike(transformer.id) : onLike(transformer.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            isLikedByUser ? onUnlike(transformer.id) : onLike(transformer.id);
+          }}
           size="sm"
           variant="ghost"
           className="p-0"
@@ -47,7 +57,10 @@ export function TransformerListItem({
       </div>
       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
-          onClick={() => onEdit(transformer.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(transformer.id);
+          }}
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0"
@@ -55,7 +68,10 @@ export function TransformerListItem({
           <Edit2 className="h-4 w-4" />
         </Button>
         <Button
-          onClick={() => onDelete(transformer.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(transformer.id);
+          }}
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
