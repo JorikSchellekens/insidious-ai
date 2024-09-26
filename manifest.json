@@ -27,9 +27,12 @@
   "background": {
     "service_worker": "src/service-worker.ts"
   },
-  "chrome_url_overrides": {
-    "newtab": "tab.html"
-  },
+  "web_accessible_resources": [
+    {
+      "resources": ["tab.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "permissions": [
     "tabs"
   ]

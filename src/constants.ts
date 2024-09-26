@@ -2,12 +2,13 @@ import { UserSettings } from "./types";
 
 // New user settings
 export const DEFAULT_USER_SETTINGS: UserSettings = {
+  id: '',
+  isSubscribed: false,
   selectedModel: '',
   apiKey: '',
   paragraphLimit: 1,
   pluginActive: true,
-  transformerSelected: "",
-  email: "",
+  transformersSelected: [],
   hoverToReveal: false,
 };
 

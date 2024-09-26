@@ -1,21 +1,21 @@
-import { useState, useMemo } from 'react'
-import { init, tx } from '@instantdb/react'
-import SettingsPageWrapper from './components/SettingsPageWrapper'
-import SettingsPage from './pages/SettingsPage'
-import FirstTimeFlow from './components/FirstTimeFlow'
-import { DBSchema, Transformer } from './types'
-import { TransformerCard } from './components/TransformerCard'
-import { TransformerForm } from './components/TransformerForm'
+import React, { useState, useMemo } from 'react'
+import { InstantReactWeb, tx, User } from '@instantdb/react'
+import SettingsPageWrapper from '../components/SettingsPageWrapper'
+import SettingsPage from './SettingsPage'
+import { DBSchema, Transformer } from '../types'
+import { TransformerCard } from '../components/TransformerCard'
+import { TransformerForm } from '../components/TransformerForm'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { improveTransformer, remixTransformers, generateCategories } from './utils/ai'
+import { remixTransformers, generateCategories } from '../utils/ai'
 
-const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a'
+interface ExplorerProps {
+  db: InstantReactWeb<DBSchema>;
+  user: User;
+}
+console.log("asdfasdf")
 
-const db = init<DBSchema>({ appId: APP_ID })
-
-function TabApp() {
-  const { isLoading, user, error } = db.useAuth()
+function Explorer({ db, user }: ExplorerProps) {
   const [sortOption, setSortOption] = useState<string>('newest')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [editingTransformer, setEditingTransformer] = useState<Transformer | null>(null)
@@ -165,17 +165,8 @@ function TabApp() {
     ? sortedTransformers 
     : sortedTransformers.filter(t => t.categories?.includes(selectedCategory))
 
+    console.log("a;sdflkajs;dflkjas;dflkjas;dlfkja;sdlfkj")
   const allCategories = Array.from(new Set(transformers.flatMap(t => t.categories || [])))
-
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>
-  }
-  
-  if (error) {
-    return <div className="flex items-center justify-center h-screen">Uh oh! {error.message}</div>
-  }
-  
-  if (!user) return <FirstTimeFlow db={db} />
 
   if (editingTransformer) {
     return (
@@ -252,4 +243,4 @@ function TabApp() {
   )
 }
 
-export default TabApp
+export default Explorer

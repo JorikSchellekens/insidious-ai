@@ -1,8 +1,9 @@
 export type UserSettings = {
-  email: string;
+  id: string; // This should already be the user's ID
   apiKey: string;
+  isSubscribed: boolean;
   pluginActive: boolean;
-  transformersSelected: string[]; // Changed from transformerSelected to transformersSelected
+  transformersSelected: string[];
   paragraphLimit: number;
   selectedModel: string;
   hoverToReveal: boolean;

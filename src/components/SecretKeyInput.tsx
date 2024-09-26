@@ -13,7 +13,7 @@ interface SecretKeyInputProps {
 export function SecretKeyInput({ userSettings, updateUserSettings }: SecretKeyInputProps) {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
+  
   const validateApiKey = (key: string, model: string) => {
     if (model.startsWith('gpt-')) {
       return /^sk-[A-Za-z0-9]{48}$/.test(key);
@@ -34,6 +34,15 @@ export function SecretKeyInput({ userSettings, updateUserSettings }: SecretKeyIn
     }
   };
 
+  const handleSubscribe = () => {
+    // Open the subscription page in a new tab
+    if (chrome && chrome.tabs) {
+      chrome.tabs.create({ url: '/subscribe' });
+    } else {
+      window.open('/subscribe', '_blank');
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="api-key">API Key</Label>
@@ -49,6 +58,9 @@ export function SecretKeyInput({ userSettings, updateUserSettings }: SecretKeyIn
       />
       <Button onClick={handleValidate}>Validate</Button>
       {hasError && <p className="text-red-500">{errorMessage}</p>}
+      
+      {/* Updated subscription button */}
+      <Button onClick={handleSubscribe}>Or Subscribe to use our API</Button>
     </div>
   );
 }

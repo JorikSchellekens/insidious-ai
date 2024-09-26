@@ -10,7 +10,30 @@ async function callAI(
   systemPrompt: string,
   userPrompt: string
 ): Promise<AIResponse> {
-  const { apiKey, selectedModel } = userSettings;
+  const { apiKey, selectedModel, isSubscribed, id: userId } = userSettings;
+
+  if (isSubscribed) {
+    // Use your server-side API endpoint
+    const response = await fetch('https://your-server.com/api/ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Include authentication if necessary
+      },
+      body: JSON.stringify({
+        userId, // Include user ID
+        model: selectedModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ]
+      })
+    });
+
+    const body = await response.json();
+    return { content: body.content };
+  }
+
   const provider = AI_PROVIDERS[selectedModel as keyof typeof AI_PROVIDERS];
 
   if (!provider) {

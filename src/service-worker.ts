@@ -44,19 +44,38 @@ db.subscribeQuery(
 
 const handleInsidiate = async (text: string, sendResponse: (response: string) => void) => {
   if (!currentUser || !userSettings) {
-    console.log("User not logged in, settings not loaded, or transformer not selected");
-    sendResponse('text');
+    sendResponse(text);
     return;
   }
 
   if (!userSettings.pluginActive) {
-    console.log("Insidious disabled");
     sendResponse(text);
     return;
   }
 
   try {
-    const content = await insidiate(userSettings, text, userSettings.transformersSelected, transformers || []);
+    let content: string;
+    if (userSettings.isSubscribed) {
+      // Send request to your server-side API
+      const response = await fetch('https://your-server.com/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Include authentication if necessary
+        },
+        body: JSON.stringify({
+          userId: userSettings.id, // Include user ID
+          text,
+          transformersSelected: userSettings.transformersSelected
+        })
+      });
+      const data = await response.json();
+      content = data.content;
+    } else {
+      // Existing code for non-subscribed users
+      content = await insidiate(userSettings, text, userSettings.transformersSelected, transformers || []);
+    }
+
     sendResponse(content);
   } catch (error) {
     console.error('Error:', error);

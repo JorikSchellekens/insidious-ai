@@ -42,6 +42,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
     setLocalSettings(updatedSettings);
   };
 
+  const handleSubscribe = () => {
+    if (chrome && chrome.tabs) {
+      chrome.tabs.create({ url: '/subscribe' });
+    } else {
+      window.open('/subscribe', '_blank');
+    }
+  };
+
   if (!db) {
     return <div>Loading...</div>;
   }
@@ -69,16 +77,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ db, user }) => {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="secret-key">Secret Key</Label>
-        <Input
-          id="secret-key"
-          type="password"
-          placeholder="Enter your secret key"
-          value={localSettings.apiKey}
-          onChange={(e) => handleChange('apiKey', e.target.value)}
-        />
-      </div>
+      {!localSettings.isSubscribed && (
+        <div className="space-y-2">
+          <Label htmlFor="secret-key">Secret Key</Label>
+          <Input
+            id="secret-key"
+            type="password"
+            placeholder="Enter your secret key"
+            value={localSettings.apiKey}
+            onChange={(e) => handleChange('apiKey', e.target.value)}
+          />
+          <Button onClick={handleSubscribe}>Or Subscribe to use our API</Button>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="paragraphCount">Paragraph Count</Label>

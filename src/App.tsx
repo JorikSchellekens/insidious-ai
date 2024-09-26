@@ -1,10 +1,13 @@
+import React from 'react';
 import { init, User } from '@instantdb/react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Home } from './pages/Home';
 import SettingsPageWrapper from './components/SettingsPageWrapper';
 import SettingsPage from './pages/SettingsPage';
 import FirstTimeFlow from './components/FirstTimeFlow';
 import { DBSchema } from './types';
 import { ArrowUpRight } from 'lucide-react';
+import Explorer from './pages/Explorer';
 
 // ID for app: insidiousai
 const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a';
@@ -23,7 +26,13 @@ function App() {
   if (!user) return <FirstTimeFlow db={db} />
 
   return (
-    <LoggedInApp user={user} />
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoggedInApp user={user} />} />
+        <Route path="/index.html" element={<LoggedInApp user={user} />} />
+        <Route path="/explorer" element={<Explorer db={db} user={user} />} />
+      </Routes>
+    </Router>
   );
 }
 
@@ -34,8 +43,12 @@ interface LoggedInAppProps {
 function LoggedInApp({ user }: LoggedInAppProps) {
   const {isLoading: isLoadingUserSettings, data: userSettings, error: errorUserSettings} = db.useQuery({ userSettings: { $: { where: { id: user.id } } } });
   
-  const openNewTab = () => {
-    chrome.tabs.create({ url: 'tab.html' });
+  const openExplorer = () => {
+    if (chrome && chrome.tabs) {
+      chrome.tabs.create({ url: chrome.runtime.getURL('/explorer') });
+    } else {
+      window.open(chrome.runtime.getURL('/explorer'), '_blank');
+    }
   };
 
   if (isLoadingUserSettings) return <div>Loading user settings...</div>
@@ -46,7 +59,7 @@ function LoggedInApp({ user }: LoggedInAppProps) {
     <div className="min-w-[350px] min-h-[600px] relative">
       <div 
         className="absolute top-4 right-4 cursor-pointer hover:scale-110 transition-transform z-50"
-        onClick={openNewTab}
+        onClick={openExplorer}
       >
         <ArrowUpRight size={24} />
       </div>
