@@ -24,14 +24,13 @@ Insidious.ai is an innovative browser extension that empowers you to harness the
 
 ## 🛠️ Components Overview
 
-- **`src/pages/Explorer.tsx`**: The main page for exploring and applying transformers to content.
+- **`extension/src/pages/Explorer.tsx`**: The main page for exploring and applying transformers to content.
 
-- **`src/components/TransformerList.tsx`**: Manage your list of transformers, adding new ones or modifying existing ones.
+- **`extension/src/components/TransformerList.tsx`**: Manage your list of transformers, adding new ones or modifying existing ones.
 
-- **`src/components/SettingsPageWrapper.tsx`**: A wrapper component that provides a consistent layout for the settings page.
+- **`extension/src/components/SettingsPageWrapper.tsx`**: A wrapper component that provides a consistent layout for the settings page.
 
-- **`src/App.tsx`**: The root component that initializes the application and routes.
-
+- **`extension/src/App.tsx`**: The root component that initializes the application and routes.
 ## 📖 Getting Started
 
 1. **Install Dependencies**:
