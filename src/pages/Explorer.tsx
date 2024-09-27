@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { InstantReactWeb, tx, User } from '@instantdb/react'
 import SettingsPageWrapper from '../components/SettingsPageWrapper'
 import SettingsPage from './SettingsPage'

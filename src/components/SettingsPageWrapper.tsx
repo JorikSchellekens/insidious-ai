@@ -13,7 +13,7 @@ export default function SettingsPageWrapper({ children, settingsPage }: Settings
   return (
     <div className="relative min-h-screen">
       {isSettingsOpen ? (
-        <div className="fixed inset-0 bg-background z-50">
+        <div className="absolute inset-0 bg-background z-50">
           <div className="p-4">
             <Button
               variant="ghost"

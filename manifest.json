@@ -1,6 +1,6 @@
 {
   "name": "Insidious",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Nothing can be trusted, everything can be improved",
   "manifest_version": 3,
   "author": "Jorik Schellekens",
@@ -32,8 +32,5 @@
       "resources": ["tab.html"],
       "matches": ["<all_urls>"]
     }
-  ],
-  "permissions": [
-    "tabs"
   ]
 }

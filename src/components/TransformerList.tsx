@@ -26,9 +26,10 @@ export function TransformerList({ db, user }: TransformerListProps) {
   });
 
   const userSettings: UserSettings = data?.userSettings[0] || {
-    email: '',
+    id: '',
     apiKey: '',
     pluginActive: false,
+    isSubscribed: false,
     transformersSelected: [],
     paragraphLimit: 0,
     selectedModel: '',
