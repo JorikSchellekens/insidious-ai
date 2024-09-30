@@ -8,10 +8,10 @@
     "default_popup": "index.html"
   },
   "icons": {
-    "16": "assets/insidious_icon.png",
-    "32": "assets/insidious_icon.png",
-    "48": "assets/insidious_icon.png",
-    "128": "assets/insidious_icon.png"
+    "16": "assets/eye_logo_128.png",
+    "32": "assets/eye_logo_128.png",
+    "48": "assets/eye_logo_128.png",
+    "128": "assets/eye_logo_128.png"
   },
   "content_scripts": [
     {
@@ -26,11 +26,5 @@
   ],
   "background": {
     "service_worker": "src/service-worker.ts"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["tab.html"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
