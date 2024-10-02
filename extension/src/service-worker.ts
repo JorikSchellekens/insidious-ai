@@ -83,7 +83,7 @@ const handleInsidiate = async (text: string, sendResponse: (response: string) =>
   }
 }
 
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type == "insidiate") {
     handleInsidiate(request.text, sendResponse);
   } else if (request.type == "paragraphLimit") {
@@ -117,6 +117,13 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       });
     });
   }
+  
+  if (request.type === "landingPageLoaded") {
+    // Handle communication from the landing page
+    console.log("Landing page loaded");
+    sendResponse({ status: "Extension is active" });
+  }
+
   return true;
 });
 
