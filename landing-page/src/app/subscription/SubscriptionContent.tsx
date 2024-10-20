@@ -68,7 +68,7 @@ export default function SubscriptionContent({ user }: SubscriptionContentProps) 
           </p>
         )}
         <p className="text-sm text-gray-500 mt-2">
-          Note: If you're using an ad-blocker, you may need to disable it for this page to complete the subscription process.
+          Note: If you&apos;re using an ad-blocker, you may need to disable it for this page to complete the subscription process.
         </p>
       </CardContent>
     </Card>

@@ -36,6 +36,7 @@ export default function Login() {
       console.log("Verifying code:", code, "for email:", email);
       await db.auth.signInWithMagicCode({ email, code });
       console.log("Code verified successfully");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error verifying code:', error);
       if (error.body?.type === 'record-not-found') {

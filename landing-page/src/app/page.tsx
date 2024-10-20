@@ -5,11 +5,6 @@ import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Brain, Globe, Settings, List, Zap, ChevronDown, Share2 } from 'lucide-react'
-import Image from "next/image"
-import { init } from '@instantdb/react';
-
-const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a';
-const db = init({ appId: APP_ID });
 
 const features = [
   { icon: Brain, title: "AI Transformers", description: "Apply AI-driven transformations to web content with ease." },
@@ -21,14 +16,6 @@ const features = [
 ]
 
 const originalText = "The Internet has revolutionized the way we communicate and access information. It has connected people across the globe and made knowledge more accessible than ever before."
-
-const transformers = [
-  { id: "emoji_translator", title: "Emoji Emphasis" },
-  { id: "time_traveler", title: "Future Time Traveler" },
-  { id: "poetic_prose", title: "Poetic Prose" },
-  { id: "eli5", title: "Explain Like I'm 5" },
-  { id: "conspiracy_theorist", title: "Conspiracy Theorist" },
-]
 
 const exampleTransformations = [
   { 
@@ -65,14 +52,11 @@ interface AnimationState {
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [currentTransformation, setCurrentTransformation] = useState(0)
   const [displayedText, setDisplayedText] = useState(originalText)
-  const [transformerName, setTransformerName] = useState('')
   const [isHighlighted, setIsHighlighted] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [isFirstTransformation, setIsFirstTransformation] = useState(true)
   const [animationState, setAnimationState] = useState<AnimationState>({
     phase: 'idle',
     progress: 0,
@@ -195,7 +179,6 @@ export default function Home() {
           case 'write-name':
             const newTransformer = exampleTransformations[currentIndex].transformer;
             if (progress < newTransformer.length * 50) {
-              setTransformerName(newTransformer.slice(0, Math.floor(progress / 50)));
               return { ...prevState, progress: progress + deltaTime };
             }
             return { phase: 'unhighlight', progress: 0, currentIndex };
@@ -244,8 +227,7 @@ export default function Home() {
     setIsDropdownOpen(prev => !prev)
   }, [])
 
-  const handleTransformerSelect = useCallback((index: number) => {
-    setCurrentTransformation(index)
+  const handleTransformerSelect = useCallback(() => {
     setIsDropdownOpen(false)
   }, [])
 
@@ -316,7 +298,7 @@ export default function Home() {
                   <div
                     key={index}
                     className="px-4 py-2 hover:bg-gray-700 cursor-pointer truncate"
-                    onClick={() => handleTransformerSelect(index)}
+                    onClick={handleTransformerSelect}
                   >
                     {transformation.transformer}
                   </div>
