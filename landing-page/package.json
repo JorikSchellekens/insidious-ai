@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@instantdb/react": "^0.14.9",
+    "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@stripe/stripe-js": "^4.8.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.446.0",

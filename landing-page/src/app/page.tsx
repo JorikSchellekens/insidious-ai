@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Brain, Globe, Settings, List, Zap, ChevronDown, Share2 } from 'lucide-react'
 import Image from "next/image"
+import { init } from '@instantdb/react';
+
+const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a';
+const db = init({ appId: APP_ID });
 
 const features = [
   { icon: Brain, title: "AI Transformers", description: "Apply AI-driven transformations to web content with ease." },
@@ -343,6 +347,7 @@ export default function Home() {
             </Link>
           </Button>
         </div>
+        <Link href="/subscription">Go to Subscription</Link>
       </div>
     </div>
   )
