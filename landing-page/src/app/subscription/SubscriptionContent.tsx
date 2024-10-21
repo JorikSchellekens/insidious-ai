@@ -87,12 +87,12 @@ export default function SubscriptionContent({ user }: SubscriptionContentProps) 
         </div>
       )}
       <CardHeader>
-        <CardTitle>Welcome, {user.email}!</CardTitle>
+        <CardTitle>Subscribe to InsidiousAI, {user.email}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isSubscribed ? (
           <>
-            <p>You are currently subscribed. Enjoy 1000 transforms per month!</p>
+            <p>You are currently subscribed. Enjoy 1,000 transforms per month!</p>
             {isCanceling ? (
               <p className="text-yellow-500">
                 Your subscription will be canceled on {new Date(subscriptionData.cancelAt).toLocaleDateString()}.
@@ -106,9 +106,9 @@ export default function SubscriptionContent({ user }: SubscriptionContentProps) 
           </>
         ) : (
           <>
-            <p>Subscribe now to get 1000 transforms per month!</p>
+            <p>1,000 monthly transforms for <b>$15/month</b></p>
             <Button onClick={handleSubscribe} className="w-full">
-              {IS_TEST_MODE ? 'Subscribe Now (Test Mode)' : 'Subscribe Now'}
+              {IS_TEST_MODE ? 'Subscribe Now (Test Mode)' : 'Subscribe Now - $15/month'}
             </Button>
           </>
         )}

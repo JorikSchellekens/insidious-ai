@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Brain, Globe, Settings, List, Zap, ChevronDown, Share2 } from 'lucide-react'
+import { Brain, Globe, Settings, List, Zap, ChevronDown, Share2, Check } from 'lucide-react'
 import BackgroundCanvas from '@/components/BackgroundCanvas'
 
 const features = [
@@ -257,14 +257,14 @@ export default function Home() {
   }, [selectedTransformer])
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
+    <div className="relative min-h-screen bg-white text-gray-900 overflow-hidden">
       <BackgroundCanvas />
       <div className="relative z-10 container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-5xl font-bold mb-6 text-emerald-300">Insidious.ai</h1>
-        <p className="text-xl mb-8 max-w-2xl text-center">
+        <h1 className="text-5xl font-bold mb-6 text-gray-900">Insidious.ai</h1>
+        <p className="text-xl mb-8 max-w-2xl text-center text-gray-700">
           AI can transform your real time browsing experience. Transform everything you read and see.
         </p>
-        <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+        <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
           <Link href="https://chromewebstore.google.com/detail/insidious/ggagkncjchhmgfoohllfgoohjalmngcf">
             Get Insidious Now
           </Link>
@@ -272,14 +272,14 @@ export default function Home() {
 
         {/* Features section */}
         <div className="mt-16 w-full">
-          <h2 className="text-3xl font-semibold mb-8 text-center text-emerald-300">Key Features</h2>
+          <h2 className="text-3xl font-semibold mb-8 text-center text-gray-900">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-gray-800 border-gray-700">
+              <Card key={index} className="bg-white border border-gray-200">
                 <CardContent className="p-6">
-                  <feature.icon className="w-12 h-12 mb-4 text-emerald-400" />
-                  <h3 className="text-xl font-semibold mb-2 text-emerald-300">{feature.title}</h3>
-                  <p className="text-gray-300">{feature.description}</p>
+                  <feature.icon className="w-12 h-12 mb-4 text-blue-500" />
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{feature.title}</h3>
+                  <p className="text-gray-700">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -288,21 +288,21 @@ export default function Home() {
 
         {/* Example transformations section */}
         <div className="mt-16 w-full">
-          <h2 className="text-3xl font-semibold mb-8 text-center text-emerald-300">See It In Action</h2>
+          <h2 className="text-3xl font-semibold mb-8 text-center text-gray-900">See It In Action</h2>
           <div className="relative" ref={dropdownRef}>
             <div 
-              className={`absolute -top-8 left-4 text-lg font-semibold ${isHighlighted ? 'text-emerald-300' : 'text-gray-300'} cursor-pointer flex items-center`}
+              className={`absolute -top-8 left-4 text-lg font-semibold ${isHighlighted ? 'text-blue-500' : 'text-gray-700'} cursor-pointer flex items-center`}
               onClick={handleDropdownToggle}
             >
               <span className="truncate max-w-[200px]">{isHovering ? 'Original Text' : selectedTransformer.transformer}</span>
               <ChevronDown className={`ml-2 transition-transform ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
             </div>
             {isDropdownOpen && (
-              <div className="absolute top-0 left-4 mt-6 w-64 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-20">
+              <div className="absolute top-0 left-4 mt-6 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                 {exampleTransformations.map((transformation, index) => (
                   <div
                     key={index}
-                    className="px-4 py-2 hover:bg-gray-700 cursor-pointer truncate"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer truncate"
                     onClick={() => handleTransformerSelect(transformation)}
                   >
                     {transformation.transformer}
@@ -311,12 +311,12 @@ export default function Home() {
               </div>
             )}
             <Card 
-              className={`bg-gray-800 border-2 transition-all duration-300 ${isHighlighted || isHovering ? 'border-emerald-300' : 'border-gray-700'}`}
+              className={`bg-white border transition-all duration-300 ${isHighlighted || isHovering ? 'border-blue-500' : 'border-gray-200'}`}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
               <CardContent className="p-6">
-                <p className="text-xl text-white min-h-[8rem] flex items-center">
+                <p className="text-xl text-gray-900 min-h-[8rem] flex items-center">
                   {displayedText}
                 </p>
               </CardContent>
@@ -324,19 +324,81 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Pricing Plan Section */}
+        <div className="mt-16 w-full">
+          <h2 className="text-3xl font-semibold mb-8 text-center text-gray-900">Simple Pricing</h2>
+          <div className="flex flex-col md:flex-row justify-center items-stretch gap-8">
+            {/* Free Tier */}
+            <Card className="bg-white border border-gray-200 max-w-sm w-full">
+              <CardContent className="p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Free Tier</h3>
+                <div className="text-4xl font-bold mb-4 text-gray-900">$0<span className="text-xl font-normal">/month</span></div>
+                <p className="text-gray-700 mb-6">Get started with your own API key</p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">Bring your own API key</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">Access to all transformers</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">Create custom transformers</span>
+                  </li>
+                </ul>
+                <Button asChild className="w-full bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+                  <Link href="https://chromewebstore.google.com/detail/insidious/ggagkncjchhmgfoohllfgoohjalmngcf">
+                    Install Now
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="bg-white border border-gray-200 max-w-sm w-full">
+              <CardContent className="p-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Pro Plan</h3>
+                <div className="text-4xl font-bold mb-4 text-gray-900">$15<span className="text-xl font-normal">/month</span></div>
+                <p className="text-gray-700 mb-6">Transform your browsing with our API</p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">1000 transformer applications per month</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">Access to all transformers</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="text-green-500 mr-2" />
+                    <span className="text-gray-700">Create custom transformers</span>
+                  </li>
+                </ul>
+                <Button asChild className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+                  <Link href="/subscription">
+                    Get Started
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Call to action section */}
         <div className="mt-16 text-center">
-          <h2 className="text-3xl font-semibold mb-4 text-emerald-300">Ready to Transform Your Browsing?</h2>
-          <p className="text-xl mb-8">Join the AI revolution in web browsing today!</p>
+          <h2 className="text-3xl font-semibold mb-4 text-gray-900">Ready to Transform Your Reality?</h2>
+          <br></br>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+            <Button asChild className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
               <Link href="https://chromewebstore.google.com/detail/insidious/ggagkncjchhmgfoohllfgoohjalmngcf">
                 Install Insidious.ai
               </Link>
             </Button>
-            <Button asChild className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+            <Button asChild className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
               <Link href="/subscription">
-                See plans
+                Upgrade to Pro
               </Link>
             </Button>
           </div>

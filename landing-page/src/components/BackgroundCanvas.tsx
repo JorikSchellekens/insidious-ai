@@ -30,10 +30,13 @@ export default function BackgroundCanvas() {
 
     const animate = () => {
       const { width, height } = canvas.getBoundingClientRect();
-      ctx.clearRect(0, 0, width, height);
+      
+      // Change background color to slightly off-white
+      ctx.fillStyle = '#f8f8f8';  // Very light grey, almost white
+      ctx.fillRect(0, 0, width, height);
 
-      // Draw grid
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      // Draw grid with light grey lines
+      ctx.strokeStyle = '#e0e0e0';  // Light grey color for grid lines
       ctx.lineWidth = 1;
 
       for (let x = 0; x < width; x += gridSize) {
@@ -57,7 +60,9 @@ export default function BackgroundCanvas() {
         dots.push({ x, y, targetX: x, targetY: y, life: 200 });
       }
 
-      ctx.fillStyle = 'rgba(0, 255, 128, 0.8)'; // More green color
+      // Change dot color to slightly darker grey
+      ctx.fillStyle = '#b0b0b0';  // Darker grey color for dots
+
       for (let i = dots.length - 1; i >= 0; i--) {
         const dot = dots[i];
         ctx.beginPath();
