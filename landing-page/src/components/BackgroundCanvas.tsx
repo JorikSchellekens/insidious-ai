@@ -2,6 +2,17 @@
 
 import React, { useEffect, useRef } from 'react';
 
+type Direction = 'up' | 'down' | 'left' | 'right';
+
+interface Dot {
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  life: number;
+  lastDirection: Direction | null;
+}
+
 export default function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -26,7 +37,16 @@ export default function BackgroundCanvas() {
     window.addEventListener('resize', resizeCanvas);
 
     const gridSize = 50;
-    const dots: { x: number; y: number; targetX: number; targetY: number; life: number }[] = [];
+    const dots: Dot[] = [];
+
+    const getOppositeDirection = (direction: Direction): Direction => {
+      switch (direction) {
+        case 'up': return 'down';
+        case 'down': return 'up';
+        case 'left': return 'right';
+        case 'right': return 'left';
+      }
+    };
 
     const animate = () => {
       const { width, height } = canvas.getBoundingClientRect();
@@ -57,7 +77,7 @@ export default function BackgroundCanvas() {
       if (Math.random() < 0.1) {
         const x = Math.floor(Math.random() * (width / gridSize)) * gridSize;
         const y = Math.floor(Math.random() * (height / gridSize)) * gridSize;
-        dots.push({ x, y, targetX: x, targetY: y, life: 200 });
+        dots.push({ x, y, targetX: x, targetY: y, life: 200, lastDirection: null });
       }
 
       // Change dot color to slightly darker grey
@@ -76,16 +96,31 @@ export default function BackgroundCanvas() {
           dot.x += dx * 0.1;
           dot.y += dy * 0.1;
         } else {
-          // Set new target when reached
-          const directions = [
-            { dx: gridSize, dy: 0 },
-            { dx: -gridSize, dy: 0 },
-            { dx: 0, dy: gridSize },
-            { dx: 0, dy: -gridSize },
-          ];
-          const { dx, dy } = directions[Math.floor(Math.random() * directions.length)];
-          dot.targetX = Math.max(0, Math.min(width, dot.x + dx));
-          dot.targetY = Math.max(0, Math.min(height, dot.y + dy));
+          const directions: Direction[] = ['up', 'down', 'left', 'right'];
+          if (dot.lastDirection) {
+            const oppositeDirection = getOppositeDirection(dot.lastDirection);
+            const index = directions.indexOf(oppositeDirection);
+            if (index > -1) {
+              directions.splice(index, 1);
+            }
+          }
+          
+          const direction = directions[Math.floor(Math.random() * directions.length)];
+          switch (direction) {
+            case 'up':
+              dot.targetY = Math.max(0, dot.y - gridSize);
+              break;
+            case 'down':
+              dot.targetY = Math.min(height, dot.y + gridSize);
+              break;
+            case 'left':
+              dot.targetX = Math.max(0, dot.x - gridSize);
+              break;
+            case 'right':
+              dot.targetX = Math.min(width, dot.x + gridSize);
+              break;
+          }
+          dot.lastDirection = direction;
         }
 
         dot.life--;
