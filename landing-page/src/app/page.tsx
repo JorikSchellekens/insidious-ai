@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Brain, Globe, Settings, List, Zap, ChevronDown, Share2 } from 'lucide-react'
+import BackgroundCanvas from '@/components/BackgroundCanvas'
 
 const features = [
   { icon: Brain, title: "AI Transformers", description: "Apply AI-driven transformations to web content with ease." },
@@ -250,10 +251,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-      />
+      <BackgroundCanvas />
       <div className="relative z-10 container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-5xl font-bold mb-6 text-emerald-300">Insidious.ai</h1>
         <p className="text-xl mb-8 max-w-2xl text-center">
