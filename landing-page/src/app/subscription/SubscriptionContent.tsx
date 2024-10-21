@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getStripe } from '@/utils/stripe';
-import { PRICE_ID, IS_TEST_MODE } from '@/constants/stripe';
+import { getStripeConfig } from '@/constants/stripe';
 
 interface User {
   email: string;
@@ -17,6 +17,7 @@ interface SubscriptionContentProps {
 
 export default function SubscriptionContent({ user }: SubscriptionContentProps) {
   const [error, setError] = useState<string | null>(null);
+  const { PRICE_ID, IS_TEST_MODE } = getStripeConfig();
 
   const handleSubscribe = async () => {
     try {

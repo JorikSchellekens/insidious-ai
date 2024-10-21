@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IS_TEST_MODE } from '@/constants/stripe';
+import { getStripeConfig } from '@/constants/stripe';
 
 export default function SuccessPage() {
+  const { IS_TEST_MODE } = getStripeConfig();
   return (
     <Card className="w-full max-w-md mx-auto mt-8">
       {IS_TEST_MODE && (

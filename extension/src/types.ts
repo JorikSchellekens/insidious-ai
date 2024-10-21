@@ -1,7 +1,6 @@
 export type UserSettings = {
-  id: string; // This should already be the user's ID
+  id: string;
   apiKey: string;
-  isSubscribed: boolean;
   pluginActive: boolean;
   transformersSelected: string[];
   paragraphLimit: number;
@@ -19,6 +18,13 @@ export interface Transformer {
   authorId: string;
 }
 
+export type SubscriptionData = {
+  id: string;
+  stripeCustomerId: string;
+  subscriptionStatus: string;
+  updatedAt: number;
+};
+
 export type DBSchema = {
   userSettings: UserSettings;
   transformers: Transformer;
@@ -34,4 +40,5 @@ export type DBSchema = {
     transformerId: string;
     createdAt: number;
   };
+  subscriptionData: SubscriptionData;
 };

@@ -34,5 +34,17 @@ export default {
       "delete": "isOwner",
       "update": "false"
     }
+  },
+  "subscriptionData": {
+    "bind": [
+      "isOwner",
+      "auth.id == data.userId"
+    ],
+    "allow": {
+      "view": "isOwner",
+      "create": "false",
+      "delete": "false",
+      "update": "false"
+    }
   }
 }
