@@ -22,6 +22,7 @@ export type SubscriptionData = {
   id: string;
   stripeCustomerId: string;
   subscriptionStatus: string;
+  cancelAt: string | null;
   updatedAt: number;
 };
 

@@ -2,12 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { init } from '@instantdb/admin';
 import { callAI } from '../src/utils/ai';
 
-// Error if INSTANT_APP_ID or INSTANT_ADMIN_TOKEN is not set
-if (!process.env.INSTANT_APP_ID || !process.env.INSTANT_ADMIN_TOKEN) {
-  throw new Error('INSTANT_APP_ID and INSTANT_ADMIN_TOKEN must be set');
+// Error if NEXT_PUBLIC_INSTANT_APP_ID or INSTANT_ADMIN_TOKEN is not set
+if (!process.env.NEXT_PUBLIC_INSTANT_APP_ID || !process.env.INSTANT_ADMIN_TOKEN) {
+  throw new Error('NEXT_PUBLIC_INSTANT_APP_ID and INSTANT_ADMIN_TOKEN must be set');
 }
 
-const db = init({ appId: process.env.INSTANT_APP_ID, adminToken: process.env.INSTANT_ADMIN_TOKEN });
+const db = init({ appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID, adminToken: process.env.INSTANT_ADMIN_TOKEN });
 
 // Get the AI model from environment variables
 const AI_MODEL = process.env.AI_MODEL || 'claude-3-sonnet-20240229';

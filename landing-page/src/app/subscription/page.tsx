@@ -7,7 +7,10 @@ import SubscriptionContent from './SubscriptionContent';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
-const APP_ID = 'c0f5375a-23e1-45ca-ae1c-18a334d4e18a';
+const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID;
+if (!APP_ID) {
+  throw new Error('NEXT_PUBLIC_INSTANT_APP_ID must be set in environment variables');
+}
 const db = init({ appId: APP_ID });
 
 export default function SubscriptionPage() {
