@@ -64,6 +64,7 @@ export default function Home() {
     currentIndex: 0
   });
   const [originalTransformerName, setOriginalTransformerName] = useState('Original Text')
+  const [selectedTransformer, setSelectedTransformer] = useState(exampleTransformations[0]);
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -170,6 +171,7 @@ export default function Home() {
 
       setAnimationState(prevState => {
         const { phase, progress, currentIndex } = prevState;
+        const newTransformer = exampleTransformations[currentIndex];
 
         switch (phase) {
           case 'idle':
@@ -178,8 +180,10 @@ export default function Home() {
             if (progress < 500) return { ...prevState, progress: progress + deltaTime };
             return { phase: 'write-name', progress: 0, currentIndex };
           case 'write-name':
-            const newTransformer = exampleTransformations[currentIndex].transformer;
-            if (progress < newTransformer.length * 50) {
+            if (progress === 0) {
+              setSelectedTransformer(newTransformer);
+            }
+            if (progress < newTransformer.transformer.length * 50) {
               return { ...prevState, progress: progress + deltaTime };
             }
             return { phase: 'unhighlight', progress: 0, currentIndex };
@@ -187,7 +191,7 @@ export default function Home() {
             if (progress < 500) return { ...prevState, progress: progress + deltaTime };
             return { phase: 'write-text', progress: 0, currentIndex };
           case 'write-text':
-            const newText = exampleTransformations[currentIndex].transformed;
+            const newText = newTransformer.transformed;
             if (progress < newText.length * 20) {
               setDisplayedText(newText.slice(0, Math.floor(progress / 20)));
               return { ...prevState, progress: progress + deltaTime };
@@ -228,9 +232,12 @@ export default function Home() {
     setIsDropdownOpen(prev => !prev)
   }, [])
 
-  const handleTransformerSelect = useCallback(() => {
-    setIsDropdownOpen(false)
-  }, [])
+  const handleTransformerSelect = useCallback((transformation: typeof exampleTransformations[0]) => {
+    setSelectedTransformer(transformation);
+    setDisplayedText(transformation.transformed);
+    setOriginalTransformerName(transformation.transformer);
+    setIsDropdownOpen(false);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -246,8 +253,8 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    setOriginalTransformerName(exampleTransformations[animationState.currentIndex].transformer)
-  }, [animationState.currentIndex])
+    setOriginalTransformerName(selectedTransformer.transformer)
+  }, [selectedTransformer])
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white overflow-hidden">
@@ -287,7 +294,7 @@ export default function Home() {
               className={`absolute -top-8 left-4 text-lg font-semibold ${isHighlighted ? 'text-emerald-300' : 'text-gray-300'} cursor-pointer flex items-center`}
               onClick={handleDropdownToggle}
             >
-              <span className="truncate max-w-[200px]">{isHovering ? 'Original Text' : originalTransformerName}</span>
+              <span className="truncate max-w-[200px]">{isHovering ? 'Original Text' : selectedTransformer.transformer}</span>
               <ChevronDown className={`ml-2 transition-transform ${isDropdownOpen ? 'transform rotate-180' : ''}`} />
             </div>
             {isDropdownOpen && (
@@ -296,7 +303,7 @@ export default function Home() {
                   <div
                     key={index}
                     className="px-4 py-2 hover:bg-gray-700 cursor-pointer truncate"
-                    onClick={handleTransformerSelect}
+                    onClick={() => handleTransformerSelect(transformation)}
                   >
                     {transformation.transformer}
                   </div>
@@ -321,13 +328,19 @@ export default function Home() {
         <div className="mt-16 text-center">
           <h2 className="text-3xl font-semibold mb-4 text-emerald-300">Ready to Transform Your Browsing?</h2>
           <p className="text-xl mb-8">Join the AI revolution in web browsing today!</p>
-          <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
-            <Link href="https://chromewebstore.google.com/detail/insidious/ggagkncjchhmgfoohllfgoohjalmngcf">
-              Install Insidious.ai
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+              <Link href="https://chromewebstore.google.com/detail/insidious/ggagkncjchhmgfoohllfgoohjalmngcf">
+                Install Insidious.ai
+              </Link>
+            </Button>
+            <Button asChild className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full text-lg transition-colors duration-300">
+              <Link href="/subscription">
+                See plans
+              </Link>
+            </Button>
+          </div>
         </div>
-        <Link href="/subscription">Go to Subscription</Link>
       </div>
     </div>
   )
